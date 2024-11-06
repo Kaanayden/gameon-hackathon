@@ -2,7 +2,7 @@
 
 // components/GameComponent.js
 import React, { useEffect, useRef } from 'react';
-import Phaser from 'phaser';
+import {AUTO, Input ,Game } from 'phaser';
 
 const GameComponent = () => {
   const gameRef = useRef(null);
@@ -10,8 +10,10 @@ const GameComponent = () => {
   useEffect(() => {
     let game;
 
+    if (typeof window !== 'undefined') {
+
     const config = {
-      type: Phaser.AUTO,
+      type: AUTO,
       width: 800, // Adjust as needed
       height: 600, // Adjust as needed
       parent: gameRef.current,
@@ -113,10 +115,10 @@ const GameComponent = () => {
 
       // Set up WASD keys
       this.keys = this.input.keyboard.addKeys({
-        W: Phaser.Input.Keyboard.KeyCodes.W,
-        A: Phaser.Input.Keyboard.KeyCodes.A,
-        S: Phaser.Input.Keyboard.KeyCodes.S,
-        D: Phaser.Input.Keyboard.KeyCodes.D,
+        W: Input.Keyboard.KeyCodes.W,
+        A: Input.Keyboard.KeyCodes.A,
+        S: Input.Keyboard.KeyCodes.S,
+        D: Input.Keyboard.KeyCodes.D,
       });
     }
 
@@ -129,17 +131,6 @@ const GameComponent = () => {
 
         let isWalking = false;
 
-      if (keys.A.isDown) {
-        player.setVelocityX(-speed);
-        isWalking = true;
-        // Play the animation
-        player.anims.play('walkLeft', true);
-      } else if (keys.D.isDown) {
-        player.setVelocityX(speed);
-        isWalking = true;
-        // Play the animation
-        player.anims.play('walkRight', true);
-      }
 
       if (keys.W.isDown) {
         player.setVelocityY(-speed);
@@ -154,6 +145,22 @@ const GameComponent = () => {
                     player.anims.play('walkDown', true)
       }
 
+      if (keys.A.isDown) {
+        player.setVelocityX(-speed);
+        if(!isWalking) player.anims.play('walkLeft', true);
+        isWalking = true;
+        // Play the animation
+      } else if (keys.D.isDown) {
+        player.setVelocityX(speed);
+
+        if(!isWalking) player.anims.play('walkRight', true);
+
+        isWalking = true;
+        // Play the animation
+
+      }
+
+
         if (!isWalking) {
             player.anims.stop(); 
             player.setFrame(0);
@@ -164,9 +171,9 @@ const GameComponent = () => {
 
 
     if (typeof window !== 'undefined') {
-      game = new Phaser.Game(config);
+      game = new Game(config);
     }
-
+    }
     return () => {
       if (game) {
         game.destroy(true);
