@@ -31,7 +31,7 @@ const GameComponent = () => {
     function preload() {
       // Load assets here
       this.load.image('grass', '/assets/grass.png'); // Ensure the path is correct
-      this.load.spritesheet('characters', '/assets/characters.gif', { frameWidth: 16, frameHeight: 24 }); // Specify frame dimensions
+      this.load.spritesheet('guy', '/assets/guy.png', { frameWidth: 16, frameHeight: 24 }); // Specify frame dimensions
     }
 
     function create() {
@@ -69,20 +69,40 @@ const GameComponent = () => {
 
       // Create the player character
       this.player = this.physics.add
-        .sprite((mapWidth / 2) * tileSize, (mapHeight / 2) * tileSize, 'characters', 4)
+        .sprite((mapWidth / 2) * tileSize, (mapHeight / 2) * tileSize, 'guy', 0)
         .setCollideWorldBounds(true)
         .setScale(3)
 
       // Create an animation from the spritesheet
       this.anims.create({
-        key: 'walk',
-        frames: this.anims.generateFrameNumbers('characters', { start: 0, end: 4 }), // Adjust start and end based on your spritesheet
-        frameRate: 10,
+        key: 'walkUp',
+        frames: this.anims.generateFrameNumbers('guy', { start: 12, end: 15 }), // Adjust start and end based on your spritesheet
+        frameRate: 8,
         repeat: -1
       });
 
-      // Play the animation
-      this.player.anims.play('walk');
+            // Create an animation from the spritesheet
+            this.anims.create({
+                key: 'walkDown',
+                frames: this.anims.generateFrameNumbers('guy', { start: 0, end: 3 }), // Adjust start and end based on your spritesheet
+                frameRate: 8,
+                repeat: -1
+              });
+
+              this.anims.create({
+                key: 'walkLeft',
+                frames: this.anims.generateFrameNumbers('guy', { start: 8, end: 11 }), // Adjust start and end based on your spritesheet
+                frameRate: 8,
+                repeat: -1
+              });
+
+                this.anims.create({
+                    key: 'walkRight',
+                    frames: this.anims.generateFrameNumbers('guy', { start: 4, end: 7 }), // Adjust start and end based on your spritesheet
+                    frameRate: 8,
+                    repeat: -1
+                  });
+
 
       // Set camera and world bounds
       this.cameras.main.setBounds(0, 0, mapWidth * tileSize, mapHeight * tileSize);
@@ -107,18 +127,41 @@ const GameComponent = () => {
 
       player.setVelocity(0);
 
+        let isWalking = false;
+
       if (keys.A.isDown) {
         player.setVelocityX(-speed);
+        isWalking = true;
+        // Play the animation
+        player.anims.play('walkLeft', true);
       } else if (keys.D.isDown) {
         player.setVelocityX(speed);
+        isWalking = true;
+        // Play the animation
+        player.anims.play('walkRight', true);
       }
 
       if (keys.W.isDown) {
         player.setVelocityY(-speed);
+        isWalking = true;
+              // Play the animation
+                player.anims.play('walkUp', true);
+
       } else if (keys.S.isDown) {
+        isWalking = true;
         player.setVelocityY(speed);
+                // Play the animation
+                    player.anims.play('walkDown', true)
       }
+
+        if (!isWalking) {
+            player.anims.stop(); 
+            player.setFrame(0);
+        }
+
     }
+
+
 
     if (typeof window !== 'undefined') {
       game = new Phaser.Game(config);
