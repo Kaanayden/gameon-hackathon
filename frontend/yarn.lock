@@ -247,6 +247,18 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.25.0.tgz#93415e7e707e4b156d77c5950b983b58f4bc33f3"
   integrity sha512-/RqrIFtLB926frMhZD0a5oDa4eFIbyNEwLLloMTEjmqfwZWXywwVVOVmwTsuyhC9HKkVEZcOOi+KV4U9wmOdlg==
 
+"@twa-dev/sdk@^7.10.1":
+  version "7.10.1"
+  resolved "https://registry.yarnpkg.com/@twa-dev/sdk/-/sdk-7.10.1.tgz#e674d2265132374382888c341d770c789ae412d4"
+  integrity sha512-mY9JaBPspYfLdzoaARVmr0GKXUO3X4hi1vuP+04UUFWST2lB50xGSxExOFz5I3vBaxnrdLregBGiaitvvWaX6w==
+  dependencies:
+    "@twa-dev/types" "^7.10.0"
+
+"@twa-dev/types@^7.10.0":
+  version "7.10.0"
+  resolved "https://registry.yarnpkg.com/@twa-dev/types/-/types-7.10.0.tgz#907f3e4bc082405a3130dee82a66dbf01d6fd33e"
+  integrity sha512-BXHyNLXy+cPbOZ2qQq5ArPKcP4kUfuX3YBSFT0XUxtMNWAzvyMuYAiq59UTfQ8OnELXlfChrAoIT3c2pujBtcQ==
+
 "@types/estree@1.0.6":
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.6.tgz#628effeeae2064a1b4e79f78e81d87b7e5fc7b50"
