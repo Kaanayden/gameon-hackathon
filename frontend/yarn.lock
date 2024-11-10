@@ -264,6 +264,11 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.6.tgz#628effeeae2064a1b4e79f78e81d87b7e5fc7b50"
   integrity sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==
 
+"@vitejs/plugin-basic-ssl@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@vitejs/plugin-basic-ssl/-/plugin-basic-ssl-1.1.0.tgz#8b840305a6b48e8764803435ec0c716fa27d3802"
+  integrity sha512-wO4Dk/rm8u7RNhOf95ZzcEmC9rYOncYgvq4z3duaJrCgjN8BxAnDVyndanfcJZ0O6XZzHz6Q0hTimxTg8Y9g/A==
+
 acorn@^8.8.2:
   version "8.14.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.14.0.tgz#063e2c70cac5fb4f6467f0b11152e04c682795b0"

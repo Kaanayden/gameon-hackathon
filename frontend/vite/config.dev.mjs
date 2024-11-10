@@ -16,8 +16,4 @@ export default defineConfig({
         port: 8080
     },
     plugins: [basicSsl()],
-    build: {
-        outDir: './docs'
-      },
-    base: './'    
 });
