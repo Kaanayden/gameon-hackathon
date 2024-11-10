@@ -1,0 +1,142 @@
+#include "imports/stdlib.fc";
+;; Pure integer implementation without floating point math
+;; FNV hash constants remain the same as they're already integers
+const int FNV_PRIME = 16777619;
+const int FNV_OFFSET = 2166136261;
+
+;; Scale factor for preserving precision in integer math
+const int SCALE = 1000; ;; Using 1000 for simpler integer scaling
+
+(int) fnv_hash(int x, int y, int seed, int ore_type) {
+    int h = FNV_OFFSET;
+    
+    ;; Process x
+    int data0 = x;
+    repeat(4) {
+        int octet = data0 & 255;
+        h = h ^ octet;
+        h = h * FNV_PRIME;
+        data0 = data0 >> 8;
+    }
+    
+    ;; Process y
+    int data1 = y;
+    repeat(4) {
+        int octet = data1 & 255;
+        h = h ^ octet;
+        h = h * FNV_PRIME;
+        data1 = data1 >> 8;
+    }
+    
+    ;; Process seed
+    int data2 = seed;
+    repeat(4) {
+        int octet = data2 & 255;
+        h = h ^ octet;
+        h = h * FNV_PRIME;
+        data2 = data2 >> 8;
+    }
+    
+    ;; Process ore_type
+    int data3 = ore_type;
+    repeat(4) {
+        int octet = data3 & 255;
+        h = h ^ octet;
+        h = h * FNV_PRIME;
+        data3 = data3 >> 8;
+    }
+    
+    ;; Return value between 0 and SCALE
+    return (h & 0x7fffffff) % SCALE;
+}
+
+(int) smooth_noise(int x, int y, int seed, int ore_type) {
+    int ix = x / SCALE;
+    int iy = y / SCALE;
+    
+    int fx = x - (ix * SCALE);
+    int fy = y - (iy * SCALE);
+    
+    int v00 = fnv_hash(ix, iy, seed, ore_type);
+    int v10 = fnv_hash(ix + 1, iy, seed, ore_type);
+    int v01 = fnv_hash(ix, iy + 1, seed, ore_type);
+    int v11 = fnv_hash(ix + 1, iy + 1, seed, ore_type);
+    
+    ;; Integer interpolation
+    int i1 = (v00 * (SCALE - fx) + v10 * fx) / SCALE;
+    int i2 = (v01 * (SCALE - fx) + v11 * fx) / SCALE;
+    
+    return (i1 * (SCALE - fy) + i2 * fy) / SCALE;
+}
+
+(int) get_ore_type(int x, int y, int rand_seed) {
+    int max_noise = 0;
+    int ore_type = 0;
+    int ore_types = 5;
+    
+    ;; Scales for each ore type (multiplied by SCALE)
+    int scales0 = 50;     ;; 0.05 * SCALE
+    int scales1 = 100;    ;; 0.1 * SCALE
+    int scales2 = 100;    ;; 0.1 * SCALE
+    int scales3 = 100;    ;; 0.1 * SCALE
+    int scales4 = 100;    ;; 0.1 * SCALE
+    
+    ;; Thresholds (multiplied by SCALE)
+    int thresh0 = 850;    ;; 0.85 * SCALE
+    int thresh1 = 800;    ;; 0.8 * SCALE
+    int thresh2 = 750;    ;; 0.75 * SCALE
+    int thresh3 = 700;    ;; 0.7 * SCALE
+    int thresh4 = 650;    ;; 0.65 * SCALE
+    
+    ;; Check each ore type
+    int i = 0;
+    repeat(ore_types) {
+        int scale = 0;
+        int threshold = 0;
+        
+        if (i == 0) { scale = scales0; threshold = thresh0; }
+        if (i == 1) { scale = scales1; threshold = thresh1; }
+        if (i == 2) { scale = scales2; threshold = thresh2; }
+        if (i == 3) { scale = scales3; threshold = thresh3; }
+        if (i == 4) { scale = scales4; threshold = thresh4; }
+        
+        int current_ore_type = i + 1;
+        int noise_value = smooth_noise(x * scale, y * scale, rand_seed, current_ore_type);
+        
+        if ((noise_value > threshold) & (noise_value > max_noise)) {
+            max_noise = noise_value;
+            ore_type = current_ore_type;
+        }
+        
+        i = i + 1;
+    }
+    
+    return ore_type;
+}
+
+(int) load_data() inline {                 ;; read function declaration - returns int as result
+  var ds = get_data().begin_parse();       ;; load the storage cell and start parsing as a slice
+  return (ds~load_uint(64));               ;; read a 64 bit unsigned int from the slice and return it
+}
+
+() save_data(int counter) impure inline {  ;; write function declaration - takes an int as arg
+  set_data(begin_cell()                    ;; store the storage cell and create it with a builder
+    .store_uint(counter, 64)               ;; write a 64 bit unsigned int to the builder
+    .end_cell());                          ;; convert the builder to a cell
+}
+
+() recv_internal(int msg_value, cell in_msg, slice in_msg_body) impure {  ;; well known function signature
+  if (in_msg_body.slice_empty?()) {         ;; check if incoming message is empty (with no body)
+    return ();                              ;; return successfully and accept an empty message
+  }
+  int op = in_msg_body~load_uint(32);       ;; parse the operation type encoded in the beginning of msg body
+  var (counter) = load_data();              ;; call our read utility function to load values from storage
+  if (op == 1) {                            ;; handle op #1 = increment
+    save_data(counter + 1);                 ;; call our write utility function to persist values to storage
+  }
+}
+
+int counter() method_id {        ;; getter declaration - returns int as result
+  var (counter) = load_data();   ;; call our read utility function to load value
+  return counter;
+}
