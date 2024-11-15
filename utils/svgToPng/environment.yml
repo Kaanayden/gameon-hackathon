@@ -1,0 +1,51 @@
+name: svg_env
+channels:
+  - defaults
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - attrs=24.2.0=py39hca03da5_0
+  - brotli-python=1.0.9=py39h313beb8_8
+  - ca-certificates=2024.9.24=hca03da5_0
+  - certifi=2024.8.30=py39hca03da5_0
+  - exceptiongroup=1.2.0=py39hca03da5_0
+  - freetype=2.12.1=h1192e45_0
+  - h11=0.14.0=py39hca03da5_0
+  - idna=3.7=py39hca03da5_0
+  - jpeg=9e=h80987f9_3
+  - lcms2=2.12=hba8e193_0
+  - lerc=3.0=hc377ac9_0
+  - libcxx=14.0.6=h848a8c0_0
+  - libdeflate=1.17=h80987f9_1
+  - libffi=3.4.4=hca03da5_1
+  - libpng=1.6.39=h80987f9_0
+  - libtiff=4.5.1=h313beb8_0
+  - libwebp-base=1.3.2=h80987f9_1
+  - lz4-c=1.9.4=h313beb8_1
+  - ncurses=6.4=h313beb8_0
+  - openjpeg=2.5.2=h54b8e55_0
+  - openssl=3.0.15=h80987f9_0
+  - outcome=1.1.0=pyhd3eb1b0_0
+  - pillow=11.0.0=py39hfaf4e14_0
+  - pip=24.2=py39hca03da5_0
+  - pysocks=1.7.1=py39hca03da5_0
+  - python=3.9.20=hb885b13_1
+  - readline=8.2=h1a28f6b_0
+  - selenium=4.24.0=py39hf0e4da2_0
+  - setuptools=75.1.0=py39hca03da5_0
+  - sniffio=1.3.0=py39hca03da5_0
+  - sortedcontainers=2.4.0=pyhd3eb1b0_0
+  - sqlite=3.45.3=h80987f9_0
+  - tk=8.6.14=h6ba3021_0
+  - trio=0.26.2=py39hca03da5_0
+  - trio-websocket=0.11.1=py39hca03da5_0
+  - typing_extensions=4.11.0=py39hca03da5_0
+  - tzdata=2024b=h04d1e81_0
+  - urllib3=2.2.3=py39hca03da5_0
+  - websocket-client=1.8.0=py39hca03da5_0
+  - wheel=0.44.0=py39hca03da5_0
+  - wsproto=1.2.0=py39hca03da5_0
+  - xz=5.4.6=h80987f9_1
+  - zlib=1.2.13=h18a0788_1
+  - zstd=1.5.6=hfb09047_0
+prefix: /opt/miniconda3/envs/svg_env
