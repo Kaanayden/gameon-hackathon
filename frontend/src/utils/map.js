@@ -1,5 +1,6 @@
 import { CHUNK_SIZE } from "./consts";
 
+
 // FNV-1a hash function
 function fnv_hash(x, y, seed, oreType) {
     let h = 2166136261; // FNV offset basis
@@ -46,8 +47,16 @@ function getOreType(x, y, randSeed) {
     let oreType = 0; // 0 means no ore
 
     // Parameters for each ore type
-    const scales = [0.05, 0.1, 0.1, 0.1, 0.1]; // Adjust scales for each ore type
-    const thresholds = [0.85, 0.8, 0.75, 0.7, 0.65]; // Thresholds for ore presence
+    const scales = [0.06, 0.11, 0.11, 0.11, 0.4]; // Adjust scales for each ore type
+    const thresholds = [0.93, 0.89, 0.89, 0.89, 0.86]; // Thresholds for ore presence
+
+    const waterScale = 0.1
+    const waterThreshold = 0.8
+
+    const waterNoise = smooth_noise(x * waterScale, y * waterScale, randSeed, 42);
+
+
+    if(waterNoise > waterThreshold) return 6;
 
     // For each ore type, compute noise value
     for (let i = 0; i < oreTypes; i++) {
@@ -67,15 +76,12 @@ function getOreType(x, y, randSeed) {
 }
 
 
-
 export function getDefaultOreType(x, y, randSeed) {
     return getOreType(x, y, randSeed);
 }
 
-// it can be given any x, y; it will be return that chunk which contains that x, y coordinates
-export function getDefaultMapChunk(x, y) {
-    const chunkX = Math.floor(x / CHUNK_SIZE);
-    const chunkY = Math.floor(y / CHUNK_SIZE);
+// chunkX and chunkY are the coordinates of the chunk in the world
+export function getDefaultMapChunk(chunkX, chunkY) {
 
      // Create a 2D array using Array.map
      const chunk = Array(CHUNK_SIZE).fill().map((_, row) => 

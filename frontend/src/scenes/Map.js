@@ -1,6 +1,9 @@
 import { Scene } from 'phaser';
 import { AUTO, Input, Game } from 'phaser';
-import { BLOCK_SIZE, MAP_SIZE } from '../utils/consts';
+import { BLOCK_SIZE, CHUNK_SIZE, MAP_SIZE, RAND_SEED } from '../utils/consts';
+import { generateChunkString, getGameCoordinates, getMapCoordinates } from '../utils/utils';
+import { getDefaultMapChunk } from '../utils/map';
+import { getBlockName } from '../utils/getBlockType';
 
 export class Map extends Scene {
 
@@ -8,14 +11,91 @@ export class Map extends Scene {
     constructor ()
     {
         super('Map');
+        this.chunkRender = {}; // { '0-s-0': {shouldStay: false, group: PhaserGroup}, }
+        this.chunkData = {}; // { '0-s-0': {data: [][]}, }
+   
     }
 
 
   // Scene-specific functions
     loadAssets = function() {
-    this.load.image('grass', '/assets/grass.png');
-    this.load.spritesheet('guy', '/assets/guy.png', { frameWidth: 16, frameHeight: 24 });
+
   };
+
+  renderChunk = function( chunkX, chunkY) {
+
+    const startX = chunkX * CHUNK_SIZE;
+    const startY = chunkY * CHUNK_SIZE;
+
+    const chunkGroup = this.add.group({
+        classType: Phaser.GameObjects.Sprite,
+    });
+
+    const chunkData = getDefaultMapChunk(chunkX, chunkY);
+
+    for (let ty = 0; ty < CHUNK_SIZE; ty++) {
+      for (let tx = 0; tx < CHUNK_SIZE; tx++) {
+
+        const worldX = startX + tx;
+        const worldY = startY + ty;
+        const spriteKey = getBlockName(chunkData[tx][ty]);
+
+        const gameCoordinates = getGameCoordinates(worldX, worldY);
+        const tile = this.add.sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
+        .setOrigin(0, 0);
+        
+        chunkGroup.add(tile);
+      }
+    }
+
+    const chunkString = generateChunkString(chunkX, chunkY);
+    this.chunkRender[chunkString] = {
+        group: chunkGroup,
+        shouldStay: true
+    };
+  }
+
+  renderChunks = function(x, y) {
+    
+    const maxChunkNumber = Math.floor(MAP_SIZE / CHUNK_SIZE);
+
+    const chunkX = Math.floor(x / CHUNK_SIZE);
+    const chunkY = Math.floor(y / CHUNK_SIZE);
+
+    Object.values(this.chunkRender).forEach((value) => {
+        value.shouldStay = false;
+    });
+
+    for(let ty = -1; ty <= 1; ty++) {
+        for(let tx = -1; tx <= 1; tx++) {
+            const currX = chunkX + tx;
+            const currY = chunkY + ty;
+            if(currX < 0 || currY < 0 || currX >= maxChunkNumber || currY >= maxChunkNumber ) {
+                continue;
+            } else {
+
+            }
+            const chunkString = generateChunkString(currX, currY);
+            if(!this.chunkRender[chunkString]) {
+                console.log('Rendering chunk', currX, currY);
+                this.renderChunk(currX, currY);
+            } else {
+                this.chunkRender[chunkString].shouldStay = true;
+            }
+        }
+    }
+
+    // Remove chunks that are not one of the 9 chunks around the player
+    Object.entries(this.chunkRender).forEach(([key, value]) => {
+        if(!value.shouldStay) {
+            value.group.destroy();
+            delete this.chunkRender[key];
+        }
+    });
+
+
+
+  }
 
    createAnimations = function() {
     const animationConfigs = [
@@ -64,9 +144,10 @@ export class Map extends Scene {
 
    setupPlayer = function() {
     this.player = this.physics.add
-      .sprite((MAP_SIZE / 2) * BLOCK_SIZE, (MAP_SIZE / 2) * BLOCK_SIZE, 'guy', 0)
-      .setCollideWorldBounds(false)
-      .setScale(3);
+      .sprite((MAP_SIZE / 2), (MAP_SIZE / 2), 'guy', 0)
+      .setCollideWorldBounds(true)
+      .setScale(3)
+      .setDepth(2);
   };
 
    setupCamera = function() {
@@ -124,10 +205,12 @@ export class Map extends Scene {
     const hoverText = this.add.text(10, 10, '', { fontSize: '16px', fill: '#fff', backgroundColor: '#000' }).setScrollFactor(0).setDepth(1);
     const selectText = this.add.text(10, 30, '', { fontSize: '16px', fill: '#fff', backgroundColor: '#000' }).setScrollFactor(0).setDepth(1);
 
-    this.createTileGrid(hoverText, selectText);
+    //this.createTileGrid(hoverText, selectText);
     this.createAnimations();
     this.setupPlayer();
     this.setupCamera();
+
+    this.debugInit();
 
     this.keys = this.input.keyboard.addKeys({
       W: Input.Keyboard.KeyCodes.W,
@@ -137,8 +220,19 @@ export class Map extends Scene {
     });
   };
 
+debugInit = function() {
+    this.fpsText = this.add.text(10, 50, '', { fontSize: '16px', fill: '#fff', backgroundColor: '#000' }).setScrollFactor(0).setDepth(1);
+}
+
+  debug = function() {
+     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
+}
+
    update = function() {
     this.handlePlayerMovement(this.player, this.keys);
+    const mapCoordinates = getMapCoordinates(this.player.x, this.player.y);
+    this.renderChunks(mapCoordinates.x, mapCoordinates.y);
+    this.debug();
   };
 
 

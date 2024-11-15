@@ -58,7 +58,7 @@ function getOreType(x, y, randSeed) {
     const waterNoise = smooth_noise(x * waterScale, y * waterScale, randSeed, 42);
 
 
-    if(waterNoise > waterThreshold) return -1;
+    if(waterNoise > waterThreshold) return 6;
 
     // For each ore type, compute noise value
     for (let i = 0; i < oreTypes; i++) {
@@ -97,7 +97,7 @@ for(let y = 0; y < MAP_SIZE; y++) {
     let row = '';
     for(let x = 0; x < MAP_SIZE; x++) {
         let oreType = getOreType(x, y, randSeed);
-        row += oreType > 0 ? oreType : ( oreType == -1 ? 'W' : '.');
+        row += oreType > 0 ? ( oreType != 6 ? oreType : 'W') : '.';
     }
     file.write(row + '\n');
     console.log(row);
