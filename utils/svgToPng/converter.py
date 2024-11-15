@@ -2,6 +2,7 @@ import os
 import argparse
 import xml.etree.ElementTree as ET
 import subprocess
+from copy import deepcopy
 
 def ensure_rsvg_convert():
     """Check if rsvg-convert is installed, if not provide installation instructions."""
@@ -12,24 +13,48 @@ def ensure_rsvg_convert():
         print("brew install librsvg")
         exit(1)
 
-def create_svg_from_group(g_element, x_offset=0, y_offset=0):
-    """Create a new SVG string from a group element."""
-    # Remove the transform attribute
-    if 'transform' in g_element.attrib:
-        del g_element.attrib['transform']
+def remove_xmlns_attributes(element):
+    """Recursively remove xmlns attributes from the element and its descendants."""
+    if 'xmlns' in element.attrib:
+        del element.attrib['xmlns']
+    for child in element:
+        remove_xmlns_attributes(child)
 
-    # Create new SVG content
-    svg_content = '''<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-'''
-    # Convert the group element back to a string
-    g_content = ET.tostring(g_element, encoding='unicode')
+def create_svg_from_element(element):
+    """Create a new SVG string from an element, including any inner SVGs."""
+    # Remove the transform attribute if present
+    if 'transform' in element.attrib:
+        del element.attrib['transform']
 
-    svg_content += g_content + '\n</svg>'
+    # Remove xmlns attributes to prevent redefinition
+    remove_xmlns_attributes(element)
+
+    # Check if the element is a <g> or an inner <svg>
+    if element.tag.endswith('g'):
+        # Create a new root SVG element
+        svg_attrib = {
+            'xmlns': 'http://www.w3.org/2000/svg',
+            'viewBox': '0 0 32 32'
+        }
+        new_svg = ET.Element('svg', svg_attrib)
+        # Append the group element to the new SVG
+        new_svg.append(element)
+    elif element.tag.endswith('svg'):
+        # Use the inner <svg> element as is, after removing conflicting attributes
+        new_svg = element
+        # Ensure the root has the correct xmlns attribute
+        new_svg.set('xmlns', 'http://www.w3.org/2000/svg')
+    else:
+        # Skip elements that are not <g> or <svg>
+        return None
+
+    # Convert the new SVG element tree to a string
+    svg_content = ET.tostring(new_svg, encoding='unicode')
+
     return svg_content
 
 def process_svg_file(svg_file_path, output_dir, scale_factor=2):
-    """Process the SVG file and extract all <g> elements."""
+    """Process the SVG file and extract all relevant elements."""
     # Ensure rsvg-convert is installed
     ensure_rsvg_convert()
 
@@ -43,22 +68,33 @@ def process_svg_file(svg_file_path, output_dir, scale_factor=2):
     # Define the namespace
     namespaces = {'svg': 'http://www.w3.org/2000/svg'}
 
-    # Find all g elements
-    g_elements = root.findall('.//svg:g', namespaces)
+    # List to hold elements to process
+    elements_to_process = []
 
-    if not g_elements:
-        print("No <g> elements found in the SVG file!")
+    # Iterate over direct children of the root
+    for child in root:
+        if child.tag == '{http://www.w3.org/2000/svg}g' or child.tag == '{http://www.w3.org/2000/svg}svg':
+            elements_to_process.append(child)
+
+    if not elements_to_process:
+        print("No relevant elements found in the SVG file!")
         return
 
-    print(f"Found {len(g_elements)} group elements")
+    print(f"Found {len(elements_to_process)} elements to process")
 
-    # Process each group
-    for index, g_element in enumerate(g_elements):
+    # Process each element
+    for index, element in enumerate(elements_to_process):
+        # Create a deep copy of the element to avoid modifying the original tree
+        element_copy = deepcopy(element)
+
+        # Generate SVG content for this element
+        svg_content = create_svg_from_element(element_copy)
+
+        if svg_content is None:
+            continue  # Skip if the element is not a <g> or <svg>
+
         # Create temporary SVG file
         temp_svg = f"temp_{index}.svg"
-
-        # Generate SVG content for this group
-        svg_content = create_svg_from_group(g_element)
 
         # Save temporary SVG file
         with open(temp_svg, 'w', encoding='utf-8') as f:
@@ -68,12 +104,25 @@ def process_svg_file(svg_file_path, output_dir, scale_factor=2):
         output_path = os.path.join(output_dir, f'tile_{index}.png')
         final_size = 32 * scale_factor
 
+        # Adjust size if the element is an inner <svg> with a different viewBox
+        if element.tag.endswith('svg'):
+            # Get viewBox dimensions
+            viewBox = element_copy.get('viewBox')
+            if viewBox:
+                _, _, width, height = map(float, viewBox.strip().split())
+                final_size_w = int(width * scale_factor)
+                final_size_h = int(height * scale_factor)
+            else:
+                final_size_w = final_size_h = final_size
+        else:
+            final_size_w = final_size_h = final_size
+
         try:
             # Convert using rsvg-convert
             subprocess.run([
                 'rsvg-convert',
-                '-w', str(final_size),
-                '-h', str(final_size),
+                '-w', str(final_size_w),
+                '-h', str(final_size_h),
                 temp_svg,
                 '-o', output_path
             ], check=True)
@@ -89,7 +138,7 @@ def process_svg_file(svg_file_path, output_dir, scale_factor=2):
                 os.remove(temp_svg)
 
 def main():
-    parser = argparse.ArgumentParser(description='Extract and convert <g> elements from SVG to PNG files')
+    parser = argparse.ArgumentParser(description='Extract and convert elements from SVG to PNG files')
     parser.add_argument('input_svg', help='Path to the input SVG file')
     parser.add_argument('-o', '--output', default='tiles', help='Output directory for PNG files (default: tiles)')
     parser.add_argument('-s', '--scale', type=int, default=2, help='Scale factor for output images (default: 2)')
