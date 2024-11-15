@@ -1,5 +1,4 @@
-// Require the file system module
-const fs = require('fs');
+import { CHUNK_SIZE } from "./consts";
 
 // FNV-1a hash function
 function fnv_hash(x, y, seed, oreType) {
@@ -67,32 +66,28 @@ function getOreType(x, y, randSeed) {
     return oreType; // Returns 0 if no ore, or ore type (1 to 5)
 }
 
-// Example usage
-let randSeed = 42;
 
-// Create a write stream to the file
-const file = fs.createWriteStream('./ore_map.txt');
 
-for (let x = 0; x < 100; x++) {
-    for (let y = 0; y < 100; y++) {
-        let oreType = getOreType(x, y, randSeed);
-        file.write(`At (${x}, ${y}): Ore Type ${oreType}\n`);
-    }
+export function getDefaultOreType(x, y, randSeed) {
+    return getOreType(x, y, randSeed);
 }
 
-// Close the file after writing
-file.end(() => {
-    console.log('Ore map has been written to ore_map.txt');
-});
-    
-// displaying 100x100 grid example while generating
-for(let y = 0; y < 100; y++) {
-    let row = '';
-    for(let x = 0; x < 100; x++) {
-        let oreType = getOreType(x, y, randSeed);
-        row += oreType > 0 ? oreType : '.';
-    }
-    console.log(row);
+// it can be given any x, y; it will be return that chunk which contains that x, y coordinates
+export function getDefaultMapChunk(x, y) {
+    const chunkX = Math.floor(x / CHUNK_SIZE);
+    const chunkY = Math.floor(y / CHUNK_SIZE);
+
+     // Create a 2D array using Array.map
+     const chunk = Array(CHUNK_SIZE).fill().map((_, row) => 
+        Array(CHUNK_SIZE).fill().map((_, col) => {
+            // Calculate absolute coordinates
+            const worldX = chunkX * CHUNK_SIZE + col;
+            const worldY = chunkY * CHUNK_SIZE + row;
+            
+            // Get ore type for each position
+            return getDefaultOreType(worldX, worldY, 0); // Replace 0 with your randSeed
+        })
+    );
+
+    return chunk;
 }
-
-

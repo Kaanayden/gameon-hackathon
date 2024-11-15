@@ -33,6 +33,17 @@ export class Preloader extends Scene
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
+
+        this.load.image('grass', 'naturalBlocks/grass.png');
+        this.load.image('dirt', 'naturalBlocks/dirt.png');
+        this.load.image('iron', 'naturalBlocks/iron.png');
+        this.load.image('water', 'naturalBlocks/water.png');
+        this.load.image('coal', 'naturalBlocks/coal.png');
+        this.load.image('bauxite', 'naturalBlocks/bauxite.png');
+        this.load.image('quartz', 'naturalBlocks/quartz.png');
+
+        this.load.spritesheet('watersprite', 'naturalBlocks/watersprite.png', { frameWidth: 32, frameHeight: 32 });
+        
     }
 
     create ()

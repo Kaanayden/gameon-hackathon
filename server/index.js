@@ -10,7 +10,7 @@ import {Server} from 'socket.io';
 import landRoutes from "./routes/land.js";
 
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8081;
 const socketPort = process.env.SOCKET_URL || 3030;
 const app = express();
 

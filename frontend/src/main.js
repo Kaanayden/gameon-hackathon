@@ -2,6 +2,7 @@ import { Boot } from './scenes/Boot';
 import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { MainMenu } from './scenes/MainMenu';
+import { Map } from './scenes/Map';
 import { Preloader } from './scenes/Preloader';
 import WebApp from '@twa-dev/sdk'
 
@@ -19,12 +20,17 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
+    physics: {
+        default: 'arcade',
+        arcade: { debug: false },
+    },
     scene: [
         Boot,
         Preloader,
         MainMenu,
         Game,
-        GameOver
+        GameOver,
+        Map
     ]
 };
 
