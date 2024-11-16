@@ -6,14 +6,16 @@ import { Map } from './scenes/Map';
 import { Preloader } from './scenes/Preloader';
 import WebApp from '@twa-dev/sdk'
 
+import VirtualJoystickPlugin from 'phaser3-rex-plugins/plugins/virtualjoystick-plugin.js';
+
 WebApp.ready();
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
+    width: 720,
+    height: 1280,
     parent: 'game-container',
     backgroundColor: '#028af8',
     scale: {
@@ -31,7 +33,15 @@ const config = {
         Game,
         GameOver,
         Map
-    ]
+    ],
+    plugins: {
+        global: [{
+            key: 'rexVirtualJoystick',
+            plugin: VirtualJoystickPlugin,
+            start: true
+        },
+        ]
+    }
 };
 
 export default new Phaser.Game(config);

@@ -41,8 +41,14 @@ export class Map extends Scene {
         const spriteKey = getBlockName(chunkData[tx][ty]);
 
         const gameCoordinates = getGameCoordinates(worldX, worldY);
-        const tile = this.add.sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
-        .setOrigin(0, 0);
+        const tile = this.add
+        .sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
+        .setOrigin(0, 0)
+        .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
+
+        if (spriteKey === 'water') {
+            tile.play('waterFlow');
+        }
         
         chunkGroup.add(tile);
       }
@@ -66,7 +72,7 @@ export class Map extends Scene {
         value.shouldStay = false;
     });
 
-    for(let ty = -1; ty <= 1; ty++) {
+    for(let ty = -2; ty <= 2; ty++) {
         for(let tx = -1; tx <= 1; tx++) {
             const currX = chunkX + tx;
             const currY = chunkY + ty;
@@ -85,34 +91,43 @@ export class Map extends Scene {
         }
     }
 
-    // Remove chunks that are not one of the 9 chunks around the player
+    // Remove chunks that are not one of the near chunks around the player
+
+    let count = 0;
+
     Object.entries(this.chunkRender).forEach(([key, value]) => {
+        count++;
         if(!value.shouldStay) {
+            console.log("deleted:", value.group)
+            value.group.clear(true, true);
             value.group.destroy();
             delete this.chunkRender[key];
         }
     });
 
-
+    console.log('Chunk count:', count);
 
   }
 
    createAnimations = function() {
     const animationConfigs = [
-      { key: 'walkUp', start: 12, end: 15 },
-      { key: 'walkDown', start: 0, end: 3 },
-      { key: 'walkLeft', start: 8, end: 11 },
-      { key: 'walkRight', start: 4, end: 7 },
+      { key: 'walkUp', start: 12, end: 15, sprite: 'guy', frameRate: 8 },
+      { key: 'walkDown', start: 0, end: 3, sprite: 'guy', frameRate: 8 },
+      { key: 'walkLeft', start: 8, end: 11, sprite: 'guy', frameRate: 8 },
+      { key: 'walkRight', start: 4, end: 7, sprite: 'guy', frameRate: 8 },
     ];
 
-    animationConfigs.forEach(({ key, start, end }) => {
+    animationConfigs.forEach(({ key, start, end, sprite, frameRate }) => {
       this.anims.create({
         key,
-        frames: this.anims.generateFrameNumbers('guy', { start, end }),
-        frameRate: 8,
+        frames: this.anims.generateFrameNumbers(sprite, { start, end }),
+        frameRate: frameRate,
         repeat: -1
       });
     });
+
+
+
   };
 
    createTileGrid = function(hoverText, selectText) {
@@ -218,6 +233,24 @@ export class Map extends Scene {
       S: Input.Keyboard.KeyCodes.S,
       D: Input.Keyboard.KeyCodes.D,
     });
+
+    const joyStickConfig = {
+        x: 360,
+        y: 1100,
+        radius: 100,
+        base: this.add.circle(0, 0, 100, 0x888888),
+        thumb: this.add.circle(0, 0, 50, 0xcccccc),
+        dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+        forceMin: 16,
+        enable: true
+    };
+
+    console.log(this.plugins);
+    this.joyStick = this.plugins.get('rexVirtualJoystick').add(this, joyStickConfig);
+
+    this.joyStick.base.setScrollFactor(0).setDepth(1000);
+    this.joyStick.thumb.setScrollFactor(0).setDepth(1000);
+
   };
 
 debugInit = function() {

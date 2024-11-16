@@ -30,7 +30,7 @@ export class Preloader extends Scene
     preload ()
     {
         //  Load the assets for the game - Replace with your own assets
-        this.load.setPath('assets');
+         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
 
@@ -45,7 +45,7 @@ export class Preloader extends Scene
         this.load.image('quartz', 'naturalBlocks/quartz.png');
         this.load.image('copper', 'naturalBlocks/copper.png');
 
-        this.load.spritesheet('watersprite', 'naturalBlocks/watersprite.png', { frameWidth: 32, frameHeight: 32 });
+        //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
         
     }
 
