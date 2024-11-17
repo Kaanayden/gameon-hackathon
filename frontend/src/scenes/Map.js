@@ -102,8 +102,8 @@ export class Map extends Scene {
             value.shouldStay = false;
         });
 
-        for (let ty = -4; ty <= 4; ty++) {
-            for (let tx = -2; tx <= 2; tx++) {
+        for (let ty = -2; ty <= 2; ty++) {
+            for (let tx = -1; tx <= 1; tx++) {
                 const currX = chunkX + tx;
                 const currY = chunkY + ty;
                 if (currX < 0 || currY < 0 || currX >= maxChunkNumber || currY >= maxChunkNumber) {
