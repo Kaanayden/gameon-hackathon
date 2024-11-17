@@ -11,17 +11,18 @@ export class Minimap {
     // Minimap properties
     this.minimapVisible = false;
     this.minimapScale = 1;
-    this.minimapSize = 200;
+    this.minimapSize = 600; // Increased size (200 * 3)
     this.areaSize = 10;
 
     this.createMinimap();
     this.setupMinimapToggle();
+    this.createToggleButton();
   }
 
   createMinimap() {
     // Create a container for the minimap
     this.minimapContainer = this.scene.add
-      .container(10, 10)
+      .container(this.scene.cameras.main.width / 2 - this.minimapSize / 2, this.scene.cameras.main.height / 2 - this.minimapSize / 2)
       .setDepth(1000)
       .setScrollFactor(0);
 
@@ -31,11 +32,26 @@ export class Minimap {
       .setOrigin(0, 0);
     this.minimapContainer.add(minimapBg);
 
-    // **Initialize minimapGraphics**
+    // Border for the minimap
+    const minimapBorder = this.scene.add.graphics();
+    minimapBorder.lineStyle(2, 0xffffff, 1);
+    minimapBorder.strokeRect(0, 0, this.minimapSize, this.minimapSize);
+    this.minimapContainer.add(minimapBorder);
+
+    // Initialize minimapGraphics
     this.minimapGraphics = this.scene.add.graphics()
       .setDepth(1001)
       .setScrollFactor(0);
     this.minimapContainer.add(this.minimapGraphics);
+
+    // Close button
+    const closeButton = this.scene.add.text(this.minimapSize - 20, 0, 'X', { fontSize: '16px', fill: '#ff0000' })
+      .setInteractive()
+      .on('pointerdown', () => {
+        this.minimapVisible = false;
+        this.minimapContainer.setVisible(this.minimapVisible);
+      });
+    this.minimapContainer.add(closeButton);
 
     // Initially hide the minimap
     this.minimapContainer.setVisible(this.minimapVisible);
@@ -146,6 +162,19 @@ export class Minimap {
     });
   }
 
+  createToggleButton() {
+    // Create a button for toggling the minimap on mobile
+    const toggleButton = this.scene.add.text(10, 10, 'Toggle Minimap', { fontSize: '16px', fill: '#ffffff' })
+      .setInteractive()
+      .on('pointerdown', () => {
+        this.minimapVisible = !this.minimapVisible;
+        this.minimapContainer.setVisible(this.minimapVisible);
+      });
+
+    // Ensure the button is always on top
+    toggleButton.setScrollFactor(0).setDepth(1001);
+  }
+
   zoomInMinimap() {
     this.minimapScale *= 1.2;
     this.minimapContainer.setScale(this.minimapScale);
@@ -154,19 +183,5 @@ export class Minimap {
   zoomOutMinimap() {
     this.minimapScale /= 1.2;
     this.minimapContainer.setScale(this.minimapScale);
-  }
-
-  updatePlayerPosition(playerX, playerY) {
-    // Clear previous player marker
-    this.playerMarker.clear();
-
-    // Scale player position to minimap coordinates
-    const blockSize = this.minimapSize / MAP_SIZE;
-    const minimapX = playerX * blockSize;
-    const minimapY = playerY * blockSize;
-
-    // Draw player marker on the minimap
-    this.playerMarker.fillStyle(0xff0000, 1);
-    this.playerMarker.fillCircle(minimapX, minimapY, 3);
   }
 }
