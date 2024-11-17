@@ -2,7 +2,7 @@ import { Scene } from 'phaser';
 import { AUTO, Input, Game } from 'phaser';
 import { BLOCK_SIZE, CHUNK_SIZE, MAP_SIZE, MAX_WALK_FRAMES_PER_SECOND, RAND_SEED } from '../utils/consts';
 import { generateChunkString, getGameCoordinates, getMapCoordinates } from '../utils/utils';
-import { getDefaultMapChunk } from '../utils/map';
+import { fetchChunk, getDefaultMapChunk } from '../utils/map';
 import { getBlockName, getBlockType, getBlockTypeByName } from '../utils/getBlockType';
 
 
@@ -11,8 +11,8 @@ export class Map extends Scene {
 
     constructor() {
         super('Map');
-        this.chunkRender = {}; // { '0-s-0': {shouldStay: false, group: PhaserGroup}, }
-        this.chunkData = {}; // { '0-s-0': {data: [][]}, }
+        this.chunkRender = {}; // { '0-s-0': {shouldStay: false, group: PhaserGroup}, usePlaceholders: false }
+        this.chunkData = {}; // { '0-s-0': {data: [][]}, shouldStay: false, fetchRequested: false, fetchCompleted: false }
 
     }
 
@@ -23,6 +23,12 @@ export class Map extends Scene {
     };
 
     renderChunk = function (chunkX, chunkY) {
+
+        let usePlaceholders = false;
+
+        if(!this.chunkData[generateChunkString(chunkX, chunkY)] || !this.chunkData[generateChunkString(chunkX, chunkY)].fetchCompleted) {
+            usePlaceholders = true;
+        }
 
         const startX = chunkX * CHUNK_SIZE;
         const startY = chunkY * CHUNK_SIZE;
@@ -35,8 +41,9 @@ export class Map extends Scene {
             classType: Phaser.GameObjects.Sprite,
         });
 
-        const chunkData = getDefaultMapChunk(chunkX, chunkY);
-
+        //const chunkData = getDefaultMapChunk(chunkX, chunkY);
+        let chunkData = usePlaceholders ? getDefaultMapChunk(chunkX, chunkY) : this.chunkData[generateChunkString(chunkX, chunkY)].data;
+        console.log("chunkData:", chunkX, chunkY, usePlaceholders, chunkData);
         for (let ty = 0; ty < CHUNK_SIZE; ty++) {
             for (let tx = 0; tx < CHUNK_SIZE; tx++) {
 
@@ -69,7 +76,8 @@ export class Map extends Scene {
             group: chunkGroup,
             collisionGroup: collisionGroup,
             collider: collider,
-            shouldStay: true
+            shouldStay: true,
+            usePlaceholders: usePlaceholders
         };
 
         
@@ -91,7 +99,7 @@ export class Map extends Scene {
 
     }
 
-    renderChunks = function (x, y) {
+    renderChunks = async function (x, y) {
 
         const maxChunkNumber = Math.floor(MAP_SIZE / CHUNK_SIZE);
 
@@ -101,6 +109,35 @@ export class Map extends Scene {
         Object.values(this.chunkRender).forEach((value) => {
             value.shouldStay = false;
         });
+
+        Object.values(this.chunkData).forEach((value) => {
+            value.shouldStay = false;
+        });
+
+        for (let ty = -4; ty <= 4; ty++) {
+            for (let tx = -3; tx <= 3; tx++) {
+                const currX = chunkX + tx;
+                const currY = chunkY + ty;
+                if (currX < 0 || currY < 0 || currX >= maxChunkNumber || currY >= maxChunkNumber) {
+                    continue;
+                } else {
+
+                }
+                const chunkString = generateChunkString(currX, currY);
+                if (!this.chunkData[chunkString] || !this.chunkData[chunkString].fetchRequested) {
+                    console.log('Fetching chunk', currX, currY);
+                    this.chunkData[chunkString] = { fetchRequested: true, shouldStay: true };
+                    const currData = await fetchChunk(currX, currY);
+                    this.chunkData[chunkString] = { shouldStay: true, data: currData, fetchCompleted: true, fetchRequested: true };
+                    if(this.chunkRender[chunkString]?.usePlaceholders) {
+                        this.deleteChunk(chunkString, this.chunkRender[chunkString]);
+                        this.renderChunk(currX, currY);
+                    }
+                } else {
+                    this.chunkData[chunkString].shouldStay = true;
+                }
+            }
+        }
 
         for (let ty = -2; ty <= 2; ty++) {
             for (let tx = -1; tx <= 1; tx++) {
@@ -131,6 +168,14 @@ export class Map extends Scene {
                 this.deleteChunk(key, value);
             }
         });
+
+        Object.entries(this.chunkData).forEach(([key, value]) => {
+
+            if (!value.shouldStay) {
+                delete this.chunkData[key];
+            }
+        });
+
 
 
     }
@@ -185,7 +230,7 @@ export class Map extends Scene {
 
     setupPlayer = function () {
         this.player = this.physics.add
-            .sprite((MAP_SIZE * BLOCK_SIZE / 2), (MAP_SIZE * BLOCK_SIZE / 2), 'guy', 0)
+            .sprite((MAP_SIZE / 2), (MAP_SIZE / 2), 'guy', 0)
             .setCollideWorldBounds(true)
             .setScale(3)
             .setDepth(2);
@@ -227,13 +272,15 @@ export class Map extends Scene {
             moveDirection[1] = Math.abs(this.joyStick.forceY) > 100 ? (this.joyStick.forceY < 0 ? -1 : 1) : this.joyStick.forceY / 100;
         }
 
-        const moveDirectionMagnitude = Math.sqrt(moveDirection[0] ** 2 + moveDirection[1] ** 2);
+        const moveDirectionMagnitude = Math.hypot(moveDirection[0], moveDirection[1]);
 
-        const angleX = Math.acos(moveDirection[0] / moveDirectionMagnitude)
-        const angleY = Math.asin(moveDirection[1] / moveDirectionMagnitude)
+        const normalizedDirection = [
+            moveDirection[0] / moveDirectionMagnitude,
+            moveDirection[1] / moveDirectionMagnitude
+        ];
 
-        const speedX = moveDirection[0] != 0 ? speed * Math.cos(angleX) * moveDirectionMagnitude / (1 / Math.SQRT1_2) : 0;
-        const speedY = moveDirection[1] != 0 ? speed * Math.sin(angleY) * moveDirectionMagnitude / (1 / Math.SQRT1_2) : 0;
+        const speedX = moveDirection[0] != 0 ? speed * normalizedDirection[0] : 0;
+        const speedY = moveDirection[1] != 0 ? speed * normalizedDirection[1] : 0;
 
 
 

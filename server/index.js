@@ -8,6 +8,7 @@ import {Server} from 'socket.io';
 
 // Routes
 import landRoutes from "./routes/land.js";
+import { saveMapToDb } from './utils/generation/saveMapToDb.js';
 
 
 const port = process.env.PORT || 8081;

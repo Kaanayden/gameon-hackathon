@@ -1,4 +1,4 @@
-import { CHUNK_SIZE } from "./consts";
+import { CHUNK_SIZE, RAND_SEED } from "./consts";
 
 
 // FNV-1a hash function
@@ -91,9 +91,17 @@ export function getDefaultMapChunk(chunkX, chunkY) {
             const worldY = chunkY * CHUNK_SIZE + row;
             
             // Get ore type for each position
-            return getDefaultOreType(worldX, worldY, 0); // Replace 0 with your randSeed
+            return getDefaultOreType(worldX, worldY, RAND_SEED); // Replace 0 with your randSeed
         })
     );
 
     return chunk;
+}
+
+export async function fetchChunk(chunkX, chunkY) {
+    console.log(import.meta.env);
+    const chunks = await fetch(`${import.meta.env.VITE_SERVER_URL}/land/get-chunks?chunks=[[${chunkX},${chunkY}]]`);
+    const jsonData = await chunks.json();
+    const firstChunk = jsonData[0];
+    return firstChunk;
 }

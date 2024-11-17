@@ -2,6 +2,7 @@ const MAP_SIZE = 400
 
 // Require the file system module
 import fs from 'fs';
+import { RAND_SEED } from '../../../frontend/src/utils/consts.js';
 
 // FNV-1a hash function
 function fnv_hash(x, y, seed, oreType) {
@@ -77,9 +78,9 @@ function getOreType(x, y, randSeed) {
     return oreType; // Returns 0 if no ore, or ore type (1 to 5)
 }
 
-// Example usage
-let randSeed = 42;
 
+let randSeed = 42;
+/*
 // Create a write stream to the file
 const file = fs.createWriteStream('./ore_map.txt');
 
@@ -108,10 +109,10 @@ file.end(() => {
     console.log('Ore map has been written to ore_map.txt');
 });
 
-
+*/
 //20x20 chunks
 
-export function getDefaultOreType(x, y, randSeed) {
-    return getOreType(x, y, randSeed);
+export function getDefaultOreType(x, y) {
+    return getOreType(x, y, RAND_SEED);
 }
 
