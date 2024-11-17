@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { blockTypes } from '../utils/getBlockType';
 
 export class Preloader extends Scene
 {
@@ -34,16 +35,13 @@ export class Preloader extends Scene
 
         this.load.image('logo', 'logo.png');
 
-        this.load.image('grass', 'naturalBlocks/grass.png');
+
         this.load.spritesheet('guy', 'guy.png', { frameWidth: 16, frameHeight: 24 });
 
-        this.load.image('dirt', 'naturalBlocks/dirt.png');
-        this.load.image('iron', 'naturalBlocks/iron.png');
-        this.load.image('water', 'naturalBlocks/water.png');
-        this.load.image('coal', 'naturalBlocks/coal.png');
-        this.load.image('bauxite', 'naturalBlocks/bauxite.png');
-        this.load.image('quartz', 'naturalBlocks/quartz.png');
-        this.load.image('copper', 'naturalBlocks/copper.png');
+        Object.entries(blockTypes).forEach(([key, value]) => {
+            this.load.image(value.name, value.path);
+        });
+
 
         //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
         

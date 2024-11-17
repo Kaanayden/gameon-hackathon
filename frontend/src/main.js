@@ -20,11 +20,11 @@ const config = {
     backgroundColor: '#028af8',
     scale: {
         mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        autoCenter: Phaser.Scale.CENTER_BOTH        
     },
     physics: {
         default: 'arcade',
-        arcade: { debug: false },
+        arcade: { debug: true },
     },
     scene: [
         Boot,
