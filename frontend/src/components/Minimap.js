@@ -3,6 +3,8 @@ import { BLOCK_SIZE, MAP_SIZE, RAND_SEED } from '../utils/consts';
 import { getDefaultOreType } from '../utils/map';
 import { getBlockType } from '../utils/getBlockType';
 
+const ZOOM_OFFSET = 250;
+
 export class Minimap {
   constructor(scene, player) {
     this.scene = scene;
@@ -30,7 +32,7 @@ export class Minimap {
         this.scene.cameras.main.width / 2 - this.minimapSize / 2,
         this.scene.cameras.main.height / 2 - this.minimapSize / 2
       )
-      .setDepth(1000)
+      .setDepth(1002)
       .setScrollFactor(0);
 
     // Create a container for the minimap content
@@ -62,6 +64,7 @@ export class Minimap {
       .on('pointerdown', () => {
         this.minimapVisible = false;
         this.minimapContainer.setVisible(this.minimapVisible);
+        this.scene.events.emit('minimapVisibilityChanged', this.minimapVisible);
       });
     this.minimapContainer.add(closeButton);
 
@@ -73,6 +76,8 @@ export class Minimap {
 
     // Render the minimap content
     this.renderMinimapContent();
+
+    
   }
 
   renderMinimapContent() {
@@ -145,6 +150,32 @@ export class Minimap {
     // Re-render the minimap content
     this.renderMinimapContent();
   }
+
+
+  setMinimapScale(scale) {
+    const MAX_SCALE = 3;
+    const MIN_SCALE = 0.5;
+
+    scale = Phaser.Math.Clamp(scale, MIN_SCALE, MAX_SCALE);
+
+    this.minimapScale = scale
+
+    this.minimapContentContainer.setScale(this.minimapScale);
+  }
+
+  zoomMinimap(delta = null) {
+    console.log("test")
+    let speed;
+    if(delta == null) {
+        speed = 1.1
+    } else {
+        speed = 1 + delta / ZOOM_OFFSET;
+    }
+
+    this.setMinimapScale(this.minimapScale * speed);
+
+  }
+
 
   enableMinimapInteraction() {
     // Enable multi-touch
@@ -246,8 +277,7 @@ export class Minimap {
             };
 
             // Update the scale
-            this.minimapScale = newScale;
-            this.minimapContentContainer.setScale(this.minimapScale);
+            this.setMinimapScale(newScale);
 
             // After scaling, calculate where the local pinch center is now
             const localPinchCenterAfterZoom = {
@@ -329,13 +359,15 @@ export class Minimap {
             this.scene.cameras.main.startFollow(this.player);
           }
         }
-      });
+      })
   }
 
   setupMinimapToggle() {
     this.scene.input.keyboard.on('keydown-M', () => {
       this.minimapVisible = !this.minimapVisible;
       this.minimapContainer.setVisible(this.minimapVisible);
+      this.scene.events.emit('minimapVisibilityChanged', this.minimapVisible);
+     
     });
   }
 
@@ -347,19 +379,13 @@ export class Minimap {
       .on('pointerdown', () => {
         this.minimapVisible = !this.minimapVisible;
         this.minimapContainer.setVisible(this.minimapVisible);
+        this.scene.events.emit('minimapVisibilityChanged', this.minimapVisible);
       });
 
     // Ensure the button is always on top
-    toggleButton.setScrollFactor(0).setDepth(1001);
+    toggleButton.setScrollFactor(0).setDepth(1003);
   }
 
-  zoomInMinimap() {
-    this.minimapScale *= 1.2;
-    this.minimapContentContainer.setScale(this.minimapScale);
-  }
 
-  zoomOutMinimap() {
-    this.minimapScale /= 1.2;
-    this.minimapContentContainer.setScale(this.minimapScale);
-  }
+
 }

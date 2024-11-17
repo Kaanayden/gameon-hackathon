@@ -10,9 +10,7 @@ export const verifyTelegramWebAppData = async (telegramInitData) => {
         body: JSON.stringify({telegramInitData: Telegram.WebApp.initData}),
     });
     if (response.ok) {
-        console.log("okey",);
     } else {
-        console.log("okey degil", response);
         throw new Error('Failed to verify Telegram Web App data');
     }
   };
