@@ -10,8 +10,8 @@ export function getContacts(req, res) {
 export function getDefaultMapChunk(chunkX, chunkY) {
 
     // Create a 2D array using Array.map
-    const chunk = Array(CHUNK_SIZE).fill().map((_, row) => 
-       Array(CHUNK_SIZE).fill().map((_, col) => {
+    const chunk = Array(CHUNK_SIZE).fill().map((_, col) => 
+       Array(CHUNK_SIZE).fill().map((_, row) => {
            // Calculate absolute coordinates
            const worldX = chunkX * CHUNK_SIZE + col;
            const worldY = chunkY * CHUNK_SIZE + row;

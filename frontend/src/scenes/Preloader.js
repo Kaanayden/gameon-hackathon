@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { blockTypes } from '../utils/getBlockType';
+import { verifyTelegramWebAppData } from '../utils/telegram';
 
 export class Preloader extends Scene
 {
@@ -11,13 +12,13 @@ export class Preloader extends Scene
     init ()
     {
         //  We loaded this image in our Boot Scene, so we can display it here
-        this.add.image(512, 384, 'background');
+        this.add.image(360, 540, 'background');
 
         //  A simple progress bar. This is the outline of the bar.
-        this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
+        this.add.rectangle(360, 540, 468, 32).setStrokeStyle(1, 0xffffff);
 
         //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(512-230, 384, 4, 28, 0xffffff);
+        const bar = this.add.rectangle(360-230, 540, 4, 28, 0xffffff);
 
         //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
         this.load.on('progress', (progress) => {
@@ -31,17 +32,37 @@ export class Preloader extends Scene
     preload ()
     {
         //  Load the assets for the game - Replace with your own assets
-         this.load.setPath('assets');
+        verifyTelegramWebAppData()
+            .then(() => {
+                console.log("Telegram WebApp data found");
+            }
+            )
+            .catch((err) => {
+                console.error(err);
+                console.log('Telegram session not found. Please run the game in Telegram');
+                this.add.text(360, 340, 'Telegram session not found.', {
+                    fontFamily: 'Arial', fontSize: 36, color: '#ffffff',
+                    stroke: '#000000', strokeThickness: 4,
+                    align: 'center'
+                }).setOrigin(0.5);
+
+                this.add.text(360, 380, 'Please run the game in Telegram', {
+                    fontFamily: 'Arial', fontSize: 36, color: '#ffffff',
+                    stroke: '#000000', strokeThickness: 4,
+                    align: 'center'
+                }).setOrigin(0.5);
+                return;
+            });
+
+        this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
-
 
         this.load.spritesheet('guy', 'guy.png', { frameWidth: 16, frameHeight: 24 });
 
         Object.entries(blockTypes).forEach(([key, value]) => {
             this.load.image(value.name, value.path);
         });
-
 
         //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
         

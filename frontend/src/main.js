@@ -7,6 +7,7 @@ import { Preloader } from './scenes/Preloader';
 import WebApp from '@twa-dev/sdk'
 
 import VirtualJoystickPlugin from 'phaser3-rex-plugins/plugins/virtualjoystick-plugin.js';
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from './utils/consts';
 
 WebApp.ready();
 
@@ -14,8 +15,8 @@ WebApp.ready();
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config = {
     type: Phaser.AUTO,
-    width: 720,
-    height: 1280,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
     parent: 'game-container',
     backgroundColor: '#028af8',
     scale: {
@@ -24,7 +25,7 @@ const config = {
     },
     physics: {
         default: 'arcade',
-        arcade: { debug: true },
+        arcade: { debug: false },
     },
     scene: [
         Boot,

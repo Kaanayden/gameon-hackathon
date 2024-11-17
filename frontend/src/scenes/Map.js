@@ -40,7 +40,7 @@ export class Map extends Scene {
         const collisionGroup = this.add.group({
             classType: Phaser.GameObjects.Sprite,
         });
-
+        console.log(Telegram.WebApp.initData);
         //const chunkData = getDefaultMapChunk(chunkX, chunkY);
         let chunkData = usePlaceholders ? getDefaultMapChunk(chunkX, chunkY) : this.chunkData[generateChunkString(chunkX, chunkY)].data;
         console.log("chunkData:", chunkX, chunkY, usePlaceholders, chunkData);
@@ -245,7 +245,7 @@ export class Map extends Scene {
         this.cameras.main.startFollow(this.player);
     };
 
-    handlePlayerMovement = function (player, keys, joyStick, speed = 160) {
+    handlePlayerMovement = function (player, keys, speed = 160) {
         player.setVelocity(0);
 
         let moveDirection = [0, 0];
@@ -317,7 +317,7 @@ export class Map extends Scene {
     setupMobileControls() {
         const joyStickConfig = {
             x: 360,
-            y: 1100,
+            y: 1040,
             radius: 100,
             base: this.add.circle(0, 0, 100, 0x888888).setAlpha(0.75),
             thumb: this.add.circle(0, 0, 50, 0xcccccc).setAlpha(0.75),
@@ -375,7 +375,7 @@ export class Map extends Scene {
     }
 
     update = function () {
-        this.handlePlayerMovement(this.player, this.keys, this.joyStick);
+        this.handlePlayerMovement(this.player, this.keys);
         if (this.registry.get('isMobile') && !this.joyStick) this.setupMobileControls();
         const mapCoordinates = getMapCoordinates(this.player.x, this.player.y);
         this.renderChunks(mapCoordinates.x, mapCoordinates.y);
