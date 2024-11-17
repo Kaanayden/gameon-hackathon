@@ -14,7 +14,6 @@ import {
 import {
   fetchChunk,
   getDefaultMapChunk,
-  getDefaultMapData,
 } from '../utils/map';
 import { getBlockName, getBlockTypeByName } from '../utils/getBlockType';
 import {Minimap} from '../components/Minimap'; // Import the Minimap class
