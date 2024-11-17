@@ -1,9 +1,10 @@
 import { Scene } from 'phaser';
 import { AUTO, Input, Game } from 'phaser';
-import { BLOCK_SIZE, CHUNK_SIZE, MAP_SIZE, RAND_SEED } from '../utils/consts';
+import { BLOCK_SIZE, CHUNK_SIZE, MAP_SIZE, MAX_WALK_FRAMES_PER_SECOND, RAND_SEED } from '../utils/consts';
 import { generateChunkString, getGameCoordinates, getMapCoordinates } from '../utils/utils';
 import { getDefaultMapChunk } from '../utils/map';
 import { getBlockName } from '../utils/getBlockType';
+
 
 export class Map extends Scene {
 
@@ -45,10 +46,6 @@ export class Map extends Scene {
         .sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
         .setOrigin(0, 0)
         .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
-
-        if (spriteKey === 'water') {
-            tile.play('waterFlow');
-        }
         
         chunkGroup.add(tile);
       }
@@ -111,10 +108,10 @@ export class Map extends Scene {
 
    createAnimations = function() {
     const animationConfigs = [
-      { key: 'walkUp', start: 12, end: 15, sprite: 'guy', frameRate: 8 },
-      { key: 'walkDown', start: 0, end: 3, sprite: 'guy', frameRate: 8 },
-      { key: 'walkLeft', start: 8, end: 11, sprite: 'guy', frameRate: 8 },
-      { key: 'walkRight', start: 4, end: 7, sprite: 'guy', frameRate: 8 },
+      { key: 'walkUp', start: 12, end: 15, sprite: 'guy', frameRate: MAX_WALK_FRAMES_PER_SECOND },
+      { key: 'walkDown', start: 0, end: 3, sprite: 'guy', frameRate: MAX_WALK_FRAMES_PER_SECOND },
+      { key: 'walkLeft', start: 8, end: 11, sprite: 'guy', frameRate: MAX_WALK_FRAMES_PER_SECOND },
+      { key: 'walkRight', start: 4, end: 7, sprite: 'guy', frameRate: MAX_WALK_FRAMES_PER_SECOND },
     ];
 
     animationConfigs.forEach(({ key, start, end, sprite, frameRate }) => {
@@ -171,45 +168,97 @@ export class Map extends Scene {
     this.cameras.main.startFollow(this.player);
   };
 
-   handlePlayerMovement = function(player, keys, speed = 160) {
+   handlePlayerMovement = function(player, keys, joyStick, speed = 160) {
     player.setVelocity(0);
-    let isWalking = false;
+
     let moveDirection = [0, 0];
 
     if (keys.W.isDown) {
       player.anims.play('walkUp', true);
-      isWalking = true;
+
     moveDirection[1] = -1;
     } else if (keys.S.isDown) {
       player.anims.play('walkDown', true);
-      isWalking = true;
+
     moveDirection[1] = 1;
     }
 
 
     if (keys.A.isDown) {
-      if (!isWalking) player.anims.play('walkLeft', true);
-      isWalking = true;
       moveDirection[0] = -1;
     } else if (keys.D.isDown) {
-      if (!isWalking) player.anims.play('walkRight', true);
-      isWalking = true;
         moveDirection[0] = 1;
     }
 
-    if (moveDirection[0] != 0 && moveDirection[1] != 0) {
-        player.setVelocityX(speed * moveDirection[0] * Math.SQRT1_2);
-        player.setVelocityY(speed * moveDirection[1] * Math.SQRT1_2);
-    } else {
-        player.setVelocityX(speed * moveDirection[0]);
-        player.setVelocityY(speed * moveDirection[1]);
+    if(this.registry.get('isMobile') && moveDirection[0] == 0 && moveDirection[1] == 0) {
+        console.log("joystick:", this.joyStick.forceX, this.joyStick.forceY);
+        moveDirection[0] = Math.abs(this.joyStick.forceX) > 100 ? (this.joyStick.forceX < 0 ? -1 : 1) : this.joyStick.forceX / 100;
+        moveDirection[1] = Math.abs(this.joyStick.forceY) > 100 ? (this.joyStick.forceY < 0 ? -1 : 1) : this.joyStick.forceY / 100; 
     }
 
-    if (!isWalking) {
-      player.anims.stop();
-      player.setFrame(0);
+    const moveDirectionMagnitude = Math.sqrt(moveDirection[0] ** 2 + moveDirection[1] ** 2);
+    
+    const angleX = Math.acos(moveDirection[0] / moveDirectionMagnitude) 
+    const angleY = Math.asin(moveDirection[1] / moveDirectionMagnitude) 
+    
+    const speedX = moveDirection[0] != 0 ? speed * Math.cos(angleX) * moveDirectionMagnitude / (1/Math.SQRT1_2) : 0;
+    const speedY = moveDirection[1] != 0 ? speed * Math.sin(angleY) * moveDirectionMagnitude / (1/Math.SQRT1_2) : 0;
+
+    
+
+   player.setVelocityX(speedX);
+    player.setVelocityY(speedY);
+if(speedX == 0 && speedY == 0) {
+    player.anims.stop();
+    player.setFrame(0);
+} else {
+    if(Math.abs(speedX) > Math.abs(speedY) * 1.5) {
+        if(speedX > 0) {
+            player.anims.play('walkRight', true);
+        } else {
+            player.anims.play('walkLeft', true);
+        }
+       
+
+        player.anims.msPerFrame = 1000 / ( Math.abs(speedX / speed) * MAX_WALK_FRAMES_PER_SECOND);
+        
+    } else {
+        if(speedY > 0) {
+            player.anims.play('walkDown', true);
+        } else {
+            player.anims.play('walkUp', true);
+        }
+        player.anims.msPerFrame = 1000 / ( Math.abs(speedY / speed) * MAX_WALK_FRAMES_PER_SECOND);
+        
     }
+}
+
   };
+
+
+setupMobileControls() {
+    const joyStickConfig = {
+        x: 360,
+        y: 1100,
+        radius: 100,
+        base: this.add.circle(0, 0, 100, 0x888888).setAlpha(0.75),
+        thumb: this.add.circle(0, 0, 50, 0xcccccc).setAlpha(0.75),
+        // dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+        //forceMin: 16,
+        // enable: true
+        forceMin: 0,
+        enable: true,
+        fixed: true,
+
+    };
+
+
+    this.joyStick = this.plugins.get('rexVirtualJoystick').add(this, joyStickConfig);
+
+    this.joyStick.base.setScrollFactor(0).setDepth(1000);
+    this.joyStick.thumb.setScrollFactor(0).setDepth(1000);
+
+}
 
   // Main scene functions
    preload = function() {
@@ -234,22 +283,9 @@ export class Map extends Scene {
       D: Input.Keyboard.KeyCodes.D,
     });
 
-    const joyStickConfig = {
-        x: 360,
-        y: 1100,
-        radius: 100,
-        base: this.add.circle(0, 0, 100, 0x888888),
-        thumb: this.add.circle(0, 0, 50, 0xcccccc),
-        dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
-        forceMin: 16,
-        enable: true
-    };
-
-    console.log(this.plugins);
-    this.joyStick = this.plugins.get('rexVirtualJoystick').add(this, joyStickConfig);
-
-    this.joyStick.base.setScrollFactor(0).setDepth(1000);
-    this.joyStick.thumb.setScrollFactor(0).setDepth(1000);
+    if(this.registry.get('isMobile')) {
+        this.setupMobileControls();
+    }
 
   };
 
@@ -262,7 +298,8 @@ debugInit = function() {
 }
 
    update = function() {
-    this.handlePlayerMovement(this.player, this.keys);
+    console.log("isMobile", this.registry.get('isMobile'));
+    this.handlePlayerMovement(this.player, this.keys, this.joyStick);
     const mapCoordinates = getMapCoordinates(this.player.x, this.player.y);
     this.renderChunks(mapCoordinates.x, mapCoordinates.y);
     this.debug();

@@ -24,5 +24,11 @@ export class MainMenu extends Scene
             this.scene.start('Map');
 
         });
+
+        this.registry.set('isMobile', false);
+        window.addEventListener('touchstart', () =>
+        {			
+            this.registry.set('isMobile', true);
+        });
     }
 }

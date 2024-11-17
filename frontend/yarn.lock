@@ -443,10 +443,10 @@ phaser3-rex-plugins@^1.80.11:
     papaparse "^5.4.1"
     webfontloader "^1.6.28"
 
-phaser@^3.86.0:
-  version "3.86.0"
-  resolved "https://registry.yarnpkg.com/phaser/-/phaser-3.86.0.tgz#90f10cec5a0edf59341e021768bb0bc7edd01628"
-  integrity sha512-A7rog3GhXYcWsPimteQmudyY6W0fx0eviOoo9Cwpzae1RPeJBDkhmWv5IFrQO9dL+T907E4dprQPnd2D4WhoEw==
+phaser@^3.87.0:
+  version "3.87.0"
+  resolved "https://registry.yarnpkg.com/phaser/-/phaser-3.87.0.tgz#209f1673b311a3f76d59f14b785699709a8f9cf5"
+  integrity sha512-AyI1b3T5fp05gzf6WUmu2FNqaZL+Y7w88yBRLf7YZXF9bncUSHpnDrupnTGoPqy/RKHRLBcay7zWeqQ2wiMWcw==
   dependencies:
     eventemitter3 "^5.0.1"
 
