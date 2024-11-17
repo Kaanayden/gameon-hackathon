@@ -76,8 +76,8 @@ function getOreType(x, y, randSeed) {
 }
 
 
-export function getDefaultOreType(x, y, randSeed) {
-    return getOreType(x, y, randSeed);
+export function getDefaultOreType(x, y) {
+    return getOreType(Math.floor(x), Math.floor(y), RAND_SEED);
 }
 
 // chunkX and chunkY are the coordinates of the chunk in the world
@@ -99,7 +99,6 @@ export function getDefaultMapChunk(chunkX, chunkY) {
 }
 
 export async function fetchChunk(chunkX, chunkY) {
-    console.log(import.meta.env);
     const chunks = await fetch(`${import.meta.env.VITE_SERVER_URL}/land/get-chunks?chunks=[[${chunkX},${chunkY}]]`);
     const jsonData = await chunks.json();
     const firstChunk = jsonData[0];
