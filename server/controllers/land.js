@@ -37,7 +37,9 @@ export async function getChunks(req, res) {
     }  );
 
     const chunkPromises = chunks.map(async chunk => {
-        const chunkData = getDefaultMapChunk(chunk.chunkX, chunk.chunkY);
+        const chunkData = getDefaultMapChunk(chunk.chunkX, chunk.chunkY)
+        .map(row => row.map(blockType => ({ blockType, direction: 3 })));
+
         //console.log("chunkData", chunks, chunkData);
     
         // Get blocks from the database in specified range and modify chunk
@@ -50,7 +52,7 @@ export async function getChunks(req, res) {
         blocks.forEach(block => {
             const localX = block.x % CHUNK_SIZE;
             const localY = block.y % CHUNK_SIZE;
-            chunkData[localX][localY] = block.type;
+            chunkData[localX][localY] = { blockType: block.type, direction: block.direction ? block.direction : 0 };
         });
 
         //console.log("not default blocks", blocks);

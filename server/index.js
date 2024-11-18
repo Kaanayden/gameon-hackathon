@@ -41,6 +41,8 @@ const io = new Server(server, {
   }
 });
 
+export { io };
+
 io.on('connection', (socket) => {
   // Add a welcome message to socket connection
   socket.emit('message', 'Welcome to the socket!');

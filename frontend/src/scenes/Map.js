@@ -1,26 +1,29 @@
 import { Scene } from 'phaser';
 import { Input } from 'phaser';
-import io from 'socket.io-client';
 import { RemotePlayer } from '../components/RemotePlayer';
 import {
     BLOCK_SIZE,
     CHUNK_SIZE,
     MAP_SIZE,
     MAX_WALK_FRAMES_PER_SECOND,
+    SCREEN_HEIGHT,
 } from '../utils/consts';
 import {
     generateChunkString,
+    generateChunkStringFromPoint,
     getGameCoordinates,
     getMapCoordinates,
 } from '../utils/utils';
 import {
     fetchChunk,
     getDefaultMapChunk,
+    getDefaultOreType,
 } from '../utils/map';
-import { getBlockName, getBlockTypeByName } from '../utils/getBlockType';
+import { blockTypes, getBlockByCoordinates, getBlockName, getBlockType, getBlockTypeByName } from '../utils/getBlockType';
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
+import { BuildingMode } from '../components/BuildingMode';
 
 export class Map extends Scene {
     constructor() {
@@ -41,7 +44,11 @@ export class Map extends Scene {
 
     // Load assets (if any)
     loadAssets() {
-        // Implement asset loading if needed
+        Object.values(blockTypes).forEach((block) => {
+            if (block.path) {
+                this.load.image(block.name, block.path);
+            }
+        });
     }
 
     // Preload assets
@@ -51,6 +58,7 @@ export class Map extends Scene {
 
     // Create game objects
     create() {
+        this.cameras.main.setBackgroundColor('#2d4c1e'); // grass color
         // Set up texts
         const hoverText = this.add
             .text(10, 10, '', {
@@ -88,6 +96,7 @@ export class Map extends Scene {
 
         // Create the minimap
         this.minimap = new Minimap(this, this.player);
+        this.buildingMode = new BuildingMode(this, this.player);
 
 
         this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
@@ -111,6 +120,53 @@ export class Map extends Scene {
             y: this.player.y,
         });
 
+        // Override the default map click handler to include boundary checks
+        this.input.on('pointerdown', this.onMapClick, this);
+    }
+
+    onMapClick(pointer) {
+        // Define the bottom bar height and position
+        const bottomBarHeight = 100;
+        const bottomBarY = SCREEN_HEIGHT - bottomBarHeight;
+
+        // If the pointer is within the bottom bar area, ignore the click
+        if (pointer.y >= bottomBarY) {
+            return;
+        }
+        
+
+        if (!this.buildingMode.isBuilding) {
+            return;
+        }
+
+        const worldX = Math.floor(pointer.worldX / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const worldY = Math.floor(pointer.worldY / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const blockType = getBlockTypeByName(this.buildingMode.selectedBlockType);
+
+        const previousBlock = getBlockByCoordinates(worldX, worldY, this.chunkData);
+        const previousBlockType = getBlockType(previousBlock.blockType);
+
+        if(!previousBlockType.isNatural) {
+            const mapCoords = getMapCoordinates(worldX, worldY);
+            this.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: getDefaultOreType(mapCoords.x, mapCoords.y), direction: 0});
+        }
+
+        if(!this.buildingMode.selectedBlockType) return;
+
+
+        if (this.buildingMode.previewSprite) {
+            // Update position
+            this.buildingMode.previewSprite.setPosition(worldX, worldY);
+        } else {
+            // Create preview
+            this.buildingMode.previewSprite = this.add.sprite(worldX, worldY, blockType.name)
+                .setAlpha(0.5)
+                .setOrigin(0.5, 0.5)
+                .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE);
+            this.buildingMode.previewRotation = 0;
+
+            this.buildingMode.createRotateAndDoneButtons();
+        }
     }
 
     // Update game objects
@@ -147,6 +203,18 @@ export class Map extends Scene {
                 repeat: -1,
             });
         });
+        Object.entries(blockTypes).forEach(([key, value]) => {
+            if(value.isSpriteSheet) {
+                this.anims.create({
+                    key: value.name + '-anim',
+                    // all frames
+                    frames: this.anims.generateFrameNumbers(value.name, { start: 0, end: value.frames.length - 1 }),
+                    frameRate: 10,
+                    repeat: -1
+                });
+            }
+        });
+
     }
 
     // Setup player (your existing code)
@@ -329,26 +397,46 @@ export class Map extends Scene {
 
         const chunkData = usePlaceholders
             ? getDefaultMapChunk(chunkX, chunkY)
+            .map((row) => row.map((blockType) => ({ blockType, direction: 0 })))
             : this.chunkData[chunkString].data;
 
         for (let ty = 0; ty < CHUNK_SIZE; ty++) {
             for (let tx = 0; tx < CHUNK_SIZE; tx++) {
+                const currBlock = chunkData[tx][ty];
                 const worldX = startX + tx;
                 const worldY = startY + ty;
-                const spriteKey = getBlockName(chunkData[tx][ty]);
+                const spriteKey = getBlockName(currBlock.blockType);
                 const blockType = getBlockTypeByName(spriteKey);
 
                 const gameCoordinates = getGameCoordinates(worldX, worldY);
+
+                if(blockType.isTransparent) {
+                    const tile = this.add
+                    .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, getBlockType(getDefaultOreType(worldX, worldY)).name)
+                    .setOrigin(0.5, 0.5)
+                    .setDisplaySize(BLOCK_SIZE , BLOCK_SIZE)
+
+                    chunkGroup.add(tile);
+                }
+
+
                 const tile = this.add
-                    .sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
-                    .setOrigin(0, 0)
-                    .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
+                    .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, spriteKey)
+                    .setOrigin(0.5, 0.5)
+                    .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE)
+                    // rotate the sprite if needed
+                    .setAngle(90 * currBlock.direction)
+
+                
 
                 if (!blockType.isMovable) {
                     // Add physics body to immovable blocks
                     this.physics.add.existing(tile, true); // true means static body
                     tile.body.moves = false;
                     collisionGroup.add(tile);
+                }
+                if(blockType.isSpriteSheet) {
+                    tile.anims.play(spriteKey + '-anim', true);
                 }
 
                 chunkGroup.add(tile);
@@ -437,6 +525,16 @@ export class Map extends Scene {
                 this.remotePlayers[id].destroy();
                 delete this.remotePlayers[id];
             }
+        });
+
+        // Handle player building
+        this.socket.on('blockPlaced', (data) => {
+            console.log("place block:", data)
+            const chunkString = generateChunkStringFromPoint(data.x, data.y)
+            this.chunkData[chunkString].data[data.x % CHUNK_SIZE][data.y % CHUNK_SIZE] = { blockType: data.blockType, direction: data.direction };
+            
+            this.deleteChunk(chunkString, this.chunkRender[chunkString]);
+            this.renderChunk(data.chunkX, data.chunkY);
         });
     }
 }
