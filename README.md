@@ -1,5 +1,7 @@
 # Machina Flow
 
+<img src="https://github.com/user-attachments/assets/1fcc4085-e796-44b0-b6e6-3dd897b8e5bb" alt="logo" width="200"/>
+
 ## Overview
 
 Welcome to our revolutionary blockchain-based casual factory game! Powered by Phaser.js, TON, and AEON technologies, this game is designed to deliver an electrifying experience right at your fingertips on mobile devices.
