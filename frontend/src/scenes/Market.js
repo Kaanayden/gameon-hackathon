@@ -5,6 +5,7 @@ export class Market extends Phaser.Scene {
 
     preload() {
         // Load assets if you have any
+        // Example:
         // this.load.image('backButton', 'path/to/backButton.png');
     }
 
@@ -21,6 +22,7 @@ export class Market extends Phaser.Scene {
             fill: '#fff',
             backgroundColor: '#000',
             padding: { x: 10, y: 5 },
+            borderRadius: 5,
         }).setOrigin(0).setInteractive({ cursor: 'pointer' });
 
         backButton.on('pointerdown', () => {
@@ -67,6 +69,38 @@ export class Market extends Phaser.Scene {
             fill: '#fff',
         }).setOrigin(0.5);
         landMarketContainer.add(landMarketContent);
+
+        // **Add Buy Button to Land Market Container**
+        const buyButtonWidth = 200;
+        const buyButtonHeight = 50;
+        const buyButton = this.add.rectangle(width / 2, height / 2 + 50, buyButtonWidth, buyButtonHeight, 0x00ff00)
+            .setOrigin(0.5)
+            .setInteractive({ cursor: 'pointer' });
+
+        const buyButtonText = this.add.text(width / 2, height / 2 + 50, 'Buy Land', {
+            fontSize: '20px',
+            fill: '#000',
+        }).setOrigin(0.5);
+
+        // Add interactivity to the Buy Button
+        buyButton.on('pointerover', () => {
+            buyButton.setFillStyle(0x00cc00); // Darker green on hover
+        });
+
+        buyButton.on('pointerout', () => {
+            buyButton.setFillStyle(0x00ff00); // Original green when not hovered
+        });
+
+        buyButton.on('pointerdown', () => {
+            // Define the action to take when the Buy button is clicked
+            // For example, open a purchase dialog or initiate a blockchain transaction
+            console.log('Buy Land button clicked');
+            // You can replace the above line with actual purchase logic
+        });
+
+        // Add Buy Button and Text to Land Market Container
+        landMarketContainer.add(buyButton);
+        landMarketContainer.add(buyButtonText);
 
         // Initially, show Item Market and hide Land Market
         landMarketContainer.setAlpha(0);
