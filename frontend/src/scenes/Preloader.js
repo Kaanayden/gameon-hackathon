@@ -82,6 +82,7 @@ export class Preloader extends Scene {
         this.load.image('pencil-icon', 'pencil-square-icon.png');
         this.load.image('rotate-icon', 'rotate-icon.png');
         this.load.image('done-icon', 'done-icon.png');
+        this.load.image('map-icon', 'map-icon.png');
 
         //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
 

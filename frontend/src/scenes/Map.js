@@ -86,9 +86,10 @@ export class Map extends Scene {
             this.connectButton = gameFi.createConnectButton(
                 {scene: this, x: 0, y: 0, text: 'Connect Wallet'}
             );
-            this.connectButton.setPosition(SCREEN_WIDTH - this.connectButton.width, 0);
-            this.connectButton.setDepth(1000);
+            this.connectButton.setDepth(10000);
             this.connectButton.setScrollFactor(0);
+            this.connectButton.setScale(2)
+            this.connectButton.setPosition(SCREEN_WIDTH - this.connectButton.width * 2, 0);
 
             this.unsubscribeWalletChange = gameFi.onWalletChange(this.onWalletChange.bind(this));
 

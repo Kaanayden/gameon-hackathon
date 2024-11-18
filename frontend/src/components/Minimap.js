@@ -374,7 +374,9 @@ export class Minimap {
   createToggleButton() {
     // Create a button for toggling the minimap on mobile
     const toggleButton = this.scene.add
-      .text(10, 10, 'Toggle Minimap', { fontSize: '16px', fill: '#ffffff' })
+      .image(60, 60, 'map-icon')
+      .setOrigin(0.5, 0.5)
+      .setScale(0.2)
       .setInteractive()
       .on('pointerdown', () => {
         this.minimapVisible = !this.minimapVisible;
