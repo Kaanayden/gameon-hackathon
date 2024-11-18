@@ -6,6 +6,7 @@ import {
     CHUNK_SIZE,
     MAP_SIZE,
     MAX_WALK_FRAMES_PER_SECOND,
+    SCREEN_HEIGHT,
 } from '../utils/consts';
 import {
     generateChunkString,
@@ -41,7 +42,11 @@ export class Map extends Scene {
 
     // Load assets (if any)
     loadAssets() {
-        // Implement asset loading if needed
+        Object.values(blockTypes).forEach((block) => {
+            if (block.path) {
+                this.load.image(block.name, block.path);
+            }
+        });
     }
 
     // Preload assets
@@ -113,8 +118,71 @@ export class Map extends Scene {
             y: this.player.y,
         });
 
+        // Override the default map click handler to include boundary checks
+        this.input.on('pointerdown', this.onMapClick, this);
+    }
 
+    onMapClick(pointer) {
+        // Define the bottom bar height and position
+        const bottomBarHeight = 100;
+        const bottomBarY = SCREEN_HEIGHT - bottomBarHeight;
 
+        // If the pointer is within the bottom bar area, ignore the click
+        if (pointer.y >= bottomBarY) {
+            return;
+        }
+
+        if (!this.buildingMode.isBuilding || !this.buildingMode.selectedBlockType) {
+            return;
+        }
+
+        const worldX = Math.floor(pointer.worldX / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const worldY = Math.floor(pointer.worldY / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const blockType = getBlockTypeByName(this.buildingMode.selectedBlockType);
+
+        if (this.buildingMode.previewSprite) {
+            // Update position
+            this.buildingMode.previewSprite.setPosition(worldX, worldY);
+        } else {
+            // Create preview
+            this.buildingMode.previewSprite = this.add.sprite(worldX, worldY, blockType.name)
+                .setAlpha(0.5)
+                .setOrigin(0.5, 0.5)
+                .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
+            this.buildingMode.previewRotation = 0;
+
+            this.buildingMode.createRotateAndDoneButtons();
+        }
+    }
+
+    placeBlock(worldX, worldY) {
+        const mapCoords = getMapCoordinates(worldX, worldY);
+        const chunkX = Math.floor(mapCoords.x / CHUNK_SIZE);
+        const chunkY = Math.floor(mapCoords.y / CHUNK_SIZE);
+        const chunkString = generateChunkString(chunkX, chunkY);
+
+        if (!this.chunkData[chunkString] || !this.chunkData[chunkString].data) {
+            this.chunkData[chunkString] = { data: getDefaultMapChunk(chunkX, chunkY) };
+        }
+        const chunkData = this.chunkData[chunkString].data;
+
+        const localX = mapCoords.x % CHUNK_SIZE;
+        const localY = mapCoords.y % CHUNK_SIZE;
+
+        const blockNumber = getBlockNumberByName(this.buildingMode.selectedBlockType);
+
+        // Ensure localX and localY are within bounds
+        if (localX >= 0 && localX < CHUNK_SIZE && localY >= 0 && localY < CHUNK_SIZE) {
+            chunkData[localX][localY] = {
+                blockType: blockNumber,
+                direction: this.buildingMode.previewRotation,
+            };
+
+            if (this.chunkRender[chunkString]) {
+                this.deleteChunk(chunkString, this.chunkRender[chunkString]);
+                this.renderChunk(chunkX, chunkY);
+            }
+        }
     }
 
     // Update game objects
@@ -359,8 +427,8 @@ export class Map extends Scene {
 
                 const gameCoordinates = getGameCoordinates(worldX, worldY);
                 const tile = this.add
-                    .sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
-                    .setOrigin(0, 0)
+                    .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, spriteKey)
+                    .setOrigin(0.5, 0.5)
                     .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE)
                     // rotate the sprite if needed
                     .setAngle(90 * currBlock.direction)

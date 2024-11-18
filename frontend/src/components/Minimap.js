@@ -352,7 +352,7 @@ export class Minimap {
             // Teleport the player if it is movable
             console.log("block", worldX, worldY, getBlockType(getDefaultOreType(mapX, mapY, RAND_SEED)))
             if(getBlockType(getDefaultOreType(worldX, worldY)).isMovable) {
-           
+              
                 this.player.setPosition(mapX, mapY);
             }
             // Update the camera position
