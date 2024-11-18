@@ -7,7 +7,9 @@ export class MainMenu extends Scene {
         super('MainMenu');
     }
 
+
     create() {
+
         const background = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
         // preserve aspect ratio of the background image
         const scale = SCREEN_HEIGHT / background.height;
