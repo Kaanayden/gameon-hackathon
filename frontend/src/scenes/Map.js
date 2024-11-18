@@ -187,7 +187,7 @@ export class Map extends Scene {
             this.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: getDefaultOreType(mapCoords.x, mapCoords.y), direction: 0});
         }
 
-        if(!this.buildingMode.selectedBlockType) return;
+        if(!this.buildingMode.selectedBlockType || !previousBlockType.isMovable) return;
 
 
         if (this.buildingMode.previewSprite) {
@@ -510,6 +510,11 @@ export class Map extends Scene {
                     this.physics.add.existing(tile, true); // true means static body
                     tile.body.moves = false;
                     collisionGroup.add(tile);
+                    // make the hitbox equal to the BLOCK_SIZE
+                    if(blockType.displaySize) {
+                    tile.body.setSize(BLOCK_SIZE, BLOCK_SIZE);
+                    tile.body.setOffset((blockType.displaySize - BLOCK_SIZE) / 2, (blockType.displaySize - BLOCK_SIZE) / 2);
+                    }
                 }
                 if(blockType.isSpriteSheet) {
                     tile.anims.play(spriteKey + '-anim', true);
