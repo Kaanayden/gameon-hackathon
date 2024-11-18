@@ -17,7 +17,7 @@ import {
     fetchChunk,
     getDefaultMapChunk,
 } from '../utils/map';
-import { getBlockName, getBlockTypeByName } from '../utils/getBlockType';
+import { blockTypes, getBlockName, getBlockTypeByName } from '../utils/getBlockType';
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
@@ -148,6 +148,18 @@ export class Map extends Scene {
                 repeat: -1,
             });
         });
+        Object.entries(blockTypes).forEach(([key, value]) => {
+            if(value.isSpriteSheet) {
+                this.anims.create({
+                    key: value.name + '-anim',
+                    // all frames
+                    frames: this.anims.generateFrameNumbers(value.name, { start: 0, end: value.frames.length - 1 }),
+                    frameRate: 10,
+                    repeat: -1
+                });
+            }
+        });
+
     }
 
     // Setup player (your existing code)
@@ -330,26 +342,34 @@ export class Map extends Scene {
 
         const chunkData = usePlaceholders
             ? getDefaultMapChunk(chunkX, chunkY)
+            .map((row) => row.map((blockType) => ({ blockType, direction: 0 })))
             : this.chunkData[chunkString].data;
 
         for (let ty = 0; ty < CHUNK_SIZE; ty++) {
             for (let tx = 0; tx < CHUNK_SIZE; tx++) {
+                const currBlock = chunkData[tx][ty];
+                console.log("currBlock", currBlock);
                 const worldX = startX + tx;
                 const worldY = startY + ty;
-                const spriteKey = getBlockName(chunkData[tx][ty]);
+                const spriteKey = getBlockName(currBlock.blockType);
                 const blockType = getBlockTypeByName(spriteKey);
 
                 const gameCoordinates = getGameCoordinates(worldX, worldY);
                 const tile = this.add
                     .sprite(gameCoordinates.x, gameCoordinates.y, spriteKey)
                     .setOrigin(0, 0)
-                    .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
+                    .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE)
+                    // rotate the sprite if needed
+                    .setAngle(90 * currBlock.direction)
 
                 if (!blockType.isMovable) {
                     // Add physics body to immovable blocks
                     this.physics.add.existing(tile, true); // true means static body
                     tile.body.moves = false;
                     collisionGroup.add(tile);
+                }
+                if(blockType.isSpriteSheet) {
+                    tile.anims.play(spriteKey + '-anim', true);
                 }
 
                 chunkGroup.add(tile);

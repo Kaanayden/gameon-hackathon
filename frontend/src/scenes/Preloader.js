@@ -72,13 +72,6 @@ export class Preloader extends Scene {
         Object.entries(blockTypes).forEach(([key, value]) => {
             if(value.isSpriteSheet) {
                 this.load.spritesheet(value.name, value.path, { frameWidth: value.frameSize, frameHeight: value.frameSize, startFrame: value.frames[0] });
-                // Add the frames to the animation
-                this.anims.create({
-                    key: value.name + '-anim',
-                    frames: this.anims.generateFrameNumbers(value.name, { frames: value.frames }),
-                    frameRate: 10,
-                    repeat: -1
-                });
             }
             else this.load.image(value.name, value.path);
         });
