@@ -51,6 +51,7 @@ export class Map extends Scene {
 
     // Create game objects
     create() {
+        this.cameras.main.setBackgroundColor('#2d4c1e'); // grass color
         // Set up texts
         const hoverText = this.add
             .text(10, 10, '', {

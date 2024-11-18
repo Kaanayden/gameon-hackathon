@@ -4,25 +4,22 @@ import { verifyTelegramWebAppData } from '../utils/telegram';
 import { connectSocket, handleSocket } from '../utils/socket';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../utils/consts';
 
-export class Preloader extends Scene
-{
-    constructor ()
-    {
+export class Preloader extends Scene {
+    constructor() {
         super('Preloader');
     }
 
-    init ()
-    {
+    init() {
         const background = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
         // preserve aspect ratio of the background image
         const scale = SCREEN_HEIGHT / background.height;
         background.setScale(scale).setScrollFactor(0);
-        
+
         //  A simple progress bar. This is the outline of the bar.
         this.add.rectangle(360, 540, 468, 32).setStrokeStyle(1, 0xffffff);
 
         //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(360-230, 540, 4, 28, 0xffffff);
+        const bar = this.add.rectangle(360 - 230, 540, 4, 28, 0xffffff);
 
 
         verifyTelegramWebAppData()
@@ -64,9 +61,8 @@ export class Preloader extends Scene
 
     }
 
-    preload ()
-    {
- 
+    preload() {
+
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
@@ -74,15 +70,29 @@ export class Preloader extends Scene
         this.load.spritesheet('guy', 'guy.png', { frameWidth: 16, frameHeight: 24 });
 
         Object.entries(blockTypes).forEach(([key, value]) => {
-            this.load.image(value.name, value.path);
+            if(value.isSpriteSheet) {
+                this.load.spritesheet(value.name, value.path, { frameWidth: value.frameSize, frameHeight: value.frameSize, startFrame: value.frames[0] });
+                // Add the frames to the animation
+                this.anims.create({
+                    key: value.name + '-anim',
+                    frames: this.anims.generateFrameNumbers(value.name, { frames: value.frames }),
+                    frameRate: 10,
+                    repeat: -1
+                });
+            }
+            else this.load.image(value.name, value.path);
         });
 
+        this.load.image('logo', 'logo.png');
+        this.load.image('pencil-icon', 'pencil-square-icon.png');
+
         //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
-        
+
     }
 
-    create ()
-    {
+    create() {
+        //A simple fade out effect
+
         //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
         //  For example, you can define global animations here, so we can use them in other scenes.
 
