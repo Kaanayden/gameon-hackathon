@@ -1,3 +1,7 @@
+import axios from "axios";
+import crypto from "crypto";
+import { AEON_APP_ID, AEON_CONFIG, AEON_PAYMENT_URL, AEON_SECRET_KEY } from "../utils/consts";
+
 export class Market extends Phaser.Scene {
     constructor() {
         super({ key: 'Market' });
@@ -64,7 +68,7 @@ export class Market extends Phaser.Scene {
         itemMarketContainer.add(itemMarketContent);
 
         // Add content to Land Market Container
-        const landMarketContent = this.add.text(width / 2, height / 2 - 50, 'Land Market Content', {
+        const landMarketContent = this.add.text(width / 2, height / 2 - 50, 'Land Market', {
             fontSize: '30px',
             fill: '#fff',
         }).setOrigin(0.5);
@@ -91,11 +95,17 @@ export class Market extends Phaser.Scene {
             buyButton.setFillStyle(0x00ff00); // Original green when not hovered
         });
 
-        buyButton.on('pointerdown', () => {
-            // Define the action to take when the Buy button is clicked
-            // For example, open a purchase dialog or initiate a blockchain transaction
-            console.log('Buy Land button clicked');
-            // You can replace the above line with actual purchase logic
+        buyButton.on('pointerdown', async () => {
+            await axios.post(AEON_PAYMENT_URL, {
+                    ...AEON_CONFIG,
+                    sign: sign(AEON_CONFIG),
+            }).then((response) => {
+                console.log(response.data);
+            }
+            ).catch((error) => {
+                console.error(error
+            );
+            });
         });
 
         // Add Buy Button and Text to Land Market Container
@@ -142,6 +152,17 @@ export class Market extends Phaser.Scene {
                 ease: 'Power2',
             });
         };
+
+        const sign = (data) => {
+            const sortedKeys = Object.keys(data).sort();
+            const queryString = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
+            const stringToSign = `${queryString}&key=${AEON_SECRET_KEY}`;
+          
+            return crypto.createHash('sha512')
+              .update(stringToSign)
+              .digest('hex')
+              .toUpperCase();
+        }
 
         // Add interactivity to the selector buttons
         itemMarketButton.on('pointerdown', showItemMarket);
