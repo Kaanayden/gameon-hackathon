@@ -1,4 +1,4 @@
-# Blockchain Casual Factory Game
+# Machina Flow
 
 ## Overview
 
