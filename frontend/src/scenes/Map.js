@@ -10,14 +10,16 @@ import {
 } from '../utils/consts';
 import {
     generateChunkString,
+    generateChunkStringFromPoint,
     getGameCoordinates,
     getMapCoordinates,
 } from '../utils/utils';
 import {
     fetchChunk,
     getDefaultMapChunk,
+    getDefaultOreType,
 } from '../utils/map';
-import { blockTypes, getBlockName, getBlockTypeByName } from '../utils/getBlockType';
+import { blockTypes, getBlockByCoordinates, getBlockName, getBlockType, getBlockTypeByName } from '../utils/getBlockType';
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
@@ -131,14 +133,26 @@ export class Map extends Scene {
         if (pointer.y >= bottomBarY) {
             return;
         }
+        
 
-        if (!this.buildingMode.isBuilding || !this.buildingMode.selectedBlockType) {
+        if (!this.buildingMode.isBuilding) {
             return;
         }
 
         const worldX = Math.floor(pointer.worldX / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
         const worldY = Math.floor(pointer.worldY / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE / 2;
         const blockType = getBlockTypeByName(this.buildingMode.selectedBlockType);
+
+        const previousBlock = getBlockByCoordinates(worldX, worldY, this.chunkData);
+        const previousBlockType = getBlockType(previousBlock.blockType);
+
+        if(!previousBlockType.isNatural) {
+            const mapCoords = getMapCoordinates(worldX, worldY);
+            this.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: getDefaultOreType(mapCoords.x, mapCoords.y), direction: 0});
+        }
+
+        if(!this.buildingMode.selectedBlockType) return;
+
 
         if (this.buildingMode.previewSprite) {
             // Update position
@@ -152,36 +166,6 @@ export class Map extends Scene {
             this.buildingMode.previewRotation = 0;
 
             this.buildingMode.createRotateAndDoneButtons();
-        }
-    }
-
-    placeBlock(worldX, worldY) {
-        const mapCoords = getMapCoordinates(worldX, worldY);
-        const chunkX = Math.floor(mapCoords.x / CHUNK_SIZE);
-        const chunkY = Math.floor(mapCoords.y / CHUNK_SIZE);
-        const chunkString = generateChunkString(chunkX, chunkY);
-
-        if (!this.chunkData[chunkString] || !this.chunkData[chunkString].data) {
-            this.chunkData[chunkString] = { data: getDefaultMapChunk(chunkX, chunkY) };
-        }
-        const chunkData = this.chunkData[chunkString].data;
-
-        const localX = mapCoords.x % CHUNK_SIZE;
-        const localY = mapCoords.y % CHUNK_SIZE;
-
-        const blockNumber = getBlockNumberByName(this.buildingMode.selectedBlockType);
-
-        // Ensure localX and localY are within bounds
-        if (localX >= 0 && localX < CHUNK_SIZE && localY >= 0 && localY < CHUNK_SIZE) {
-            chunkData[localX][localY] = {
-                blockType: blockNumber,
-                direction: this.buildingMode.previewRotation,
-            };
-
-            if (this.chunkRender[chunkString]) {
-                this.deleteChunk(chunkString, this.chunkRender[chunkString]);
-                this.renderChunk(chunkX, chunkY);
-            }
         }
     }
 
@@ -419,7 +403,6 @@ export class Map extends Scene {
         for (let ty = 0; ty < CHUNK_SIZE; ty++) {
             for (let tx = 0; tx < CHUNK_SIZE; tx++) {
                 const currBlock = chunkData[tx][ty];
-                console.log("currBlock", currBlock);
                 const worldX = startX + tx;
                 const worldY = startY + ty;
                 const spriteKey = getBlockName(currBlock.blockType);
@@ -529,6 +512,16 @@ export class Map extends Scene {
                 this.remotePlayers[id].destroy();
                 delete this.remotePlayers[id];
             }
+        });
+
+        // Handle player building
+        this.socket.on('blockPlaced', (data) => {
+            console.log("place block:", data)
+            const chunkString = generateChunkStringFromPoint(data.x, data.y)
+            this.chunkData[chunkString].data[data.x % CHUNK_SIZE][data.y % CHUNK_SIZE] = { blockType: data.blockType, direction: data.direction };
+            
+            this.deleteChunk(chunkString, this.chunkRender[chunkString]);
+            this.renderChunk(data.chunkX, data.chunkY);
         });
     }
 }

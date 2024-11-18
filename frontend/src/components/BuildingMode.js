@@ -31,6 +31,7 @@ export class BuildingMode {
                 this.showBottomBar();
             } else {
                 this.hideBottomBar();
+                this.destroyPreview();
             }
           });
 
@@ -124,7 +125,7 @@ export class BuildingMode {
         const offsetY = -50;
 
         if (!this.rotateButton) {
-            this.rotateButton = this.scene.add.image(60, SCREEN_HEIGHT - 40, 'pencil-icon')
+            this.rotateButton = this.scene.add.image(50, SCREEN_HEIGHT - 45, 'rotate-icon')
                 .setInteractive()
                 .setOrigin(0.5)
                 .on('pointerdown', (pointer, localX, localY, event) => {
@@ -133,10 +134,9 @@ export class BuildingMode {
                     this.previewSprite.setRotation(Phaser.Math.DegToRad(this.previewRotation * 90));
                 })
                 .setDepth(4001)
-                .setScale(0.15)
                 .setScrollFactor(0);
 
-            this.doneButton = this.scene.add.image(120, SCREEN_HEIGHT - 40, 'pencil-icon')
+            this.doneButton = this.scene.add.image(130, SCREEN_HEIGHT - 45, 'done-icon')
                 .setInteractive()
                 .setOrigin(0.5)
                 .on('pointerdown', (pointer, localX, localY, event) => {
@@ -145,8 +145,10 @@ export class BuildingMode {
                     this.destroyPreview();
                 })
                 .setDepth(4001)
-                .setScale(0.15)
                 .setScrollFactor(0);
+                // make the buttons smaller according to their heigts and screen size without changing the aspect ratio
+                this.rotateButton.setScale(80 / this.rotateButton.height);
+                this.doneButton.setScale(80 / this.doneButton.height);
         }
     }
 
@@ -174,13 +176,9 @@ export class BuildingMode {
         if (!this.scene.chunkData[chunkString] || !this.scene.chunkData[chunkString].data) {
             this.scene.chunkData[chunkString] = { data: getDefaultMapChunk(chunkX, chunkY) };
         }
-        const chunkData = this.scene.chunkData[chunkString].data;
-
-        const localX = mapCoords.x % CHUNK_SIZE;
-        const localY = mapCoords.y % CHUNK_SIZE;
 
         const blockNumber = getBlockNumberByName(this.selectedBlockType);
-
+/*
         chunkData[localX][localY] = {
             blockType: blockNumber,
             direction: this.previewRotation,
@@ -190,5 +188,10 @@ export class BuildingMode {
             this.scene.deleteChunk(chunkString, this.scene.chunkRender[chunkString]);
         }
         this.scene.renderChunk(chunkX, chunkY);
+*/
+        // Send block placement to server
+        console.log("thisSelectedBlockType", blockNumber);
+        if(blockNumber != null) this.scene.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: blockNumber, direction: this.previewRotation });
+
     }
 }

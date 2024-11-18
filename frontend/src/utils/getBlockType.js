@@ -1,3 +1,7 @@
+import { CHUNK_SIZE } from "./consts";
+import { getDefaultMapChunk } from "./map";
+import { generateChunkString, getMapCoordinates } from "./utils";
+
 export const buildableBlocks = {
     '7': {name : 'conveyor', path: 'buildableBlocks/conveyor.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: [0], outputDirections: [2], isStorage: false, isSpriteSheet: true, isConveyor: true, frames: [0, 1, 2, 3, 4, 5, 6, 7], frameSize: 32}, 
     '8': {name : 'clockwiseConveyor', path: 'buildableBlocks/curves.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: [0], outputDirections: [3], isStorage: false, isSpriteSheet: true, isConveyor: true, frames: [0], frameSize: 32},
@@ -54,4 +58,19 @@ export function getBlockTypeByName(name) {
 
 export function getBlockNumberByName(name) {
     return parseInt(blockNumbersByName[name]);
+}
+
+export function getBlockByCoordinates(worldX, worldY, chunkData) {
+    const mapCoords = getMapCoordinates(worldX, worldY);
+    const chunkX = Math.floor(mapCoords.x / CHUNK_SIZE);
+    const chunkY = Math.floor(mapCoords.y / CHUNK_SIZE);
+    const chunkString = generateChunkString(chunkX, chunkY);
+
+    const currData = chunkData[chunkString].data;
+
+    const localX = mapCoords.x % CHUNK_SIZE;
+    const localY = mapCoords.y % CHUNK_SIZE;
+
+    return currData[localX][localY];
+
 }
