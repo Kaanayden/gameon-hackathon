@@ -14,6 +14,7 @@ import telegramRoutes from "./routes/telegram.js";
 import { saveMapToDb } from './utils/generation/saveMapToDb.js';
 import { handleSocketConnection } from './controllers/socket.js';
 import { getUserData, verifyTelegramWebAppData } from './utils/telegram.js';
+import landDetailRoutes from './routes/landDetail.js';
 
 
 const port = process.env.PORT || 8750;
@@ -28,6 +29,7 @@ connectDB();
 
 app.use("/land", landRoutes);
 app.use("/telegram", telegramRoutes);
+app.use("/land-detail", landDetailRoutes);  
 
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
