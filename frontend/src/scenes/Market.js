@@ -1,6 +1,4 @@
 import axios from "axios";
-import crypto from "crypto";
-import { AEON_APP_ID, AEON_CONFIG, AEON_PAYMENT_URL, AEON_SECRET_KEY } from "../utils/consts";
 
 export class Market extends Phaser.Scene {
     constructor() {
@@ -96,16 +94,16 @@ export class Market extends Phaser.Scene {
         });
 
         buyButton.on('pointerdown', async () => {
-            await axios.post(AEON_PAYMENT_URL, {
-                    ...AEON_CONFIG,
-                    sign: sign(AEON_CONFIG),
-            }).then((response) => {
-                console.log(response.data);
-            }
-            ).catch((error) => {
-                console.error(error
-            );
-            });
+        try{
+            const res = await axios.post(`${import.meta.env.VITE_SERVER_URL}/aeon/pay`, {
+                   // random order number 
+                    orderNo: Math.random().toString(36).substring(7),
+                    amount: 10
+            })
+            console.log(res.data);
+        } catch (error) {
+            console.error(error);
+        }
         });
 
         // Add Buy Button and Text to Land Market Container
@@ -152,17 +150,6 @@ export class Market extends Phaser.Scene {
                 ease: 'Power2',
             });
         };
-
-        const sign = (data) => {
-            const sortedKeys = Object.keys(data).sort();
-            const queryString = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
-            const stringToSign = `${queryString}&key=${AEON_SECRET_KEY}`;
-          
-            return crypto.createHash('sha512')
-              .update(stringToSign)
-              .digest('hex')
-              .toUpperCase();
-        }
 
         // Add interactivity to the selector buttons
         itemMarketButton.on('pointerdown', showItemMarket);

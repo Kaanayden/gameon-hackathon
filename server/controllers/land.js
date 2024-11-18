@@ -3,11 +3,6 @@ import BlockModel from "../models/BlockModel.js";
 import { getDefaultOreType } from "../utils/generation/mapGenerator.js";
 
 
-
-export function getContacts(req, res) {
-    res.status(200).send("getContacts");
-}
-
 export function getDefaultMapChunk(chunkX, chunkY) {
 
     // Create a 2D array using Array.map

@@ -1,10 +1,10 @@
 import express from "express";
-import { getChunks } from "../controllers/land.js";
+import {  payWithAeon } from "../controllers/aeon.js";
 //import authMiddleware from "../utils/authMiddleware.js";
 
 const router = express.Router();
 //router.use("/", authMiddleware);
 
-router.get("/get-chunks", getChunks);
+router.post("/pay", payWithAeon);
 
 export default router;
