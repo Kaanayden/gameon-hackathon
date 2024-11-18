@@ -16,7 +16,7 @@ export class MainMenu extends Scene {
         background.setScale(scale).setScrollFactor(0);
 
         // Set position and size of the logo
-        this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250, 'logo').setScale(0.5);
+        const logo = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250, 'logo').setScale(0.5);
 
         this.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 200, 'Start The Game', {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
@@ -42,5 +42,6 @@ export class MainMenu extends Scene {
             stroke: '#000000', strokeThickness: 4,
             align: 'center'
         }).setOrigin(0.5);
+
     }
 }

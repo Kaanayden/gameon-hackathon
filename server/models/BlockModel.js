@@ -13,6 +13,10 @@ const BlockSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    direction: {
+        type: Number,
+        required: false,
+    },
 }, { 
     _id: false 
 });

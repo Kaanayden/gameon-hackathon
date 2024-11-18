@@ -1,3 +1,5 @@
+import { io } from '../index.js';
+import BlockModel from '../models/BlockModel.js';
 const currentPlayers = {};
 
 export const handleSocketConnection = (socket, userData) => {
@@ -50,5 +52,28 @@ export const handleSocketConnection = (socket, userData) => {
         console.log('A user disconnected');
       });
 
+      //Handle placeBlock
+      socket.on('placeBlock', (data) => {
+          console.log('Block placed:', data);
+          io.emit('blockPlaced', data);
+
+          const newBlock = new BlockModel({
+            x: data.x,
+            y: data.y,
+            type: data.blockType,
+            direction: data.direction
+          });
+          
+          BlockModel.updateOne(
+            { x: newBlock.x, y: newBlock.y }, // Filter
+            { $set: newBlock }, // Update
+            { upsert: true } // Insert if not exists
+        ).then(() => {
+            console.log('Block placed successfully');
+        }).catch((err) => {
+            console.error('Failed to place block:', err);
+        });
+
+      });
 
 };
