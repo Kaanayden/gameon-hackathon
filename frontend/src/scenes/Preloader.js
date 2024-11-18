@@ -13,10 +13,11 @@ export class Preloader extends Scene
 
     init ()
     {
-        //  We loaded this image in our Boot Scene, so we can display it here
         const background = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
-        background.setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
-
+        // preserve aspect ratio of the background image
+        const scale = SCREEN_HEIGHT / background.height;
+        background.setScale(scale).setScrollFactor(0);
+        
         //  A simple progress bar. This is the outline of the bar.
         this.add.rectangle(360, 540, 468, 32).setStrokeStyle(1, 0xffffff);
 
