@@ -2,7 +2,13 @@
 
 ## Overview
 
-Welcome to our blockchain-based casual factory game! This game is built using Phaser.js, TON and AEON technologies and is targeted for mobile devices. Players can manage and expand their own plots of land, mine ores, and create complex items. The entire map is available for purchase, and players can buy and sell plots of land and assets on a marketplace.
+Welcome to our revolutionary blockchain-based casual factory game! Powered by Phaser.js, TON, and AEON technologies, this game is designed to deliver an electrifying experience right at your fingertips on mobile devices.
+
+Dive into a dynamic world where you can manage and expand your plots of land, mine valuable ores, and craft intricate, game-changing items. The entire map is up for grabs—yes, every piece of it! Trade and strategize as you buy and sell plots and assets in a vibrant, player-driven marketplace.
+
+But here’s the twist: the map isn’t just any ordinary map. Thanks to procedural generation, no two maps are alike, and some lands hold secrets and treasures far more valuable than others. To unlock the most exotic blocks and craft extraordinary items, you’ll need to team up and trade with other players.
+
+**Claim your land. Shape your strategy. Build your empire. The world is yours to conquer—are you ready?**
 
 ## Features
 
