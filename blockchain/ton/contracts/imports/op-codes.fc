@@ -1,0 +1,10 @@
+;;
+;; Operation Codes
+;;
+
+(int) op::transfer() inline { return 1; }
+(int) op::get_static_data() inline { return 2; }
+(int) op::ownership_assigned() inline { return 3; }
+(int) op::report_static_data() inline { return 4; }
+(int) op::get_royalty_params() inline { return 5; }
+(int) op::report_royalty_params() inline { return 6; }

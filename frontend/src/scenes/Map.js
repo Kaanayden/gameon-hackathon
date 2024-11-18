@@ -6,6 +6,7 @@ import {
     CHUNK_SIZE,
     MAP_SIZE,
     MAX_WALK_FRAMES_PER_SECOND,
+    SCREEN_WIDTH,
     SCREEN_HEIGHT,
 } from '../utils/consts';
 import {
@@ -24,6 +25,8 @@ import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
 import { BuildingMode } from '../components/BuildingMode';
+import { GameFi } from '@ton/phaser-sdk';
+
 
 export class Map extends Scene {
     constructor() {
@@ -40,6 +43,8 @@ export class Map extends Scene {
         this.joyStick = null;
         this.minimap = null;
         this.remotePlayers = {};
+        this.connectButton = null;
+        this.marketButton = null;
     }
 
     // Load assets (if any)
@@ -49,6 +54,7 @@ export class Map extends Scene {
                 this.load.image(block.name, block.path);
             }
         });
+        this.load.image('market', 'assets/market.png');
     }
 
     // Preload assets
@@ -58,6 +64,36 @@ export class Map extends Scene {
 
     // Create game objects
     create() {
+
+        GameFi.create({
+            connector: {
+                // if tonconnect-manifest.json is placed in the root you can skip this option
+                manifestUrl: "https://raw.githubusercontent.com/koybasimuhittin/manifest/refs/heads/main/tonconnect-manifest.json",
+                actionsConfiguration: {
+                    // address of your Telegram Mini App to return to after the wallet is connected
+                    // url you provided to BothFather during the app creation process
+                    // to read more please read https://github.com/ton-community/flappy-bird#telegram-bot--telegram-web-app
+                    twaReturnUrl: import.meta.env.VITE_PUBLIC_FRONTEND_URL,
+                },
+                contentResolver: {
+                    // some NFT marketplaces don't support CORS, so we need to use a proxy
+                    // you are able to use any format of the URL, %URL% will be replaced with the actual URL
+                    urlProxy: `%URL%`
+                },
+            },
+        }).then((gameFi) => {
+            console.log(gameFi);
+            this.connectButton = gameFi.createConnectButton(
+                {scene: this, x: 0, y: 0, text: 'Connect Wallet'}
+            );
+            this.connectButton.setPosition(SCREEN_WIDTH - this.connectButton.width, 0);
+            this.connectButton.setDepth(1000);
+            this.connectButton.setScrollFactor(0);
+
+            this.unsubscribeWalletChange = gameFi.onWalletChange(this.onWalletChange.bind(this));
+
+        });
+
         this.cameras.main.setBackgroundColor('#2d4c1e'); // grass color
         // Set up texts
         const hoverText = this.add
@@ -236,9 +272,47 @@ export class Map extends Scene {
         this.cameras.main.startFollow(this.player);
     }
 
+    // Add this method inside the Map class
+    createMarketButton() {
+        if (this.marketButton) return; // Prevent multiple instances
+
+        // Create the Market Button as an interactive image
+        this.marketButton = this.add.image(0, 0, 'market').setInteractive();
+
+        // Define padding between buttons
+        const padding = 10;
+
+        // Position the Market Button to the left of the Connect Button
+        this.marketButton.setScale(0.6)
+
+        this.marketButton.setPosition(
+            this.connectButton.x - padding - 20,
+            this.connectButton.y + 20
+        );
+       
+
+        // Set rendering properties
+        this.marketButton.setDepth(1000);
+        this.marketButton.setScrollFactor(0);
+
+        // Add a pointer (click) event listener
+        this.marketButton.on('pointerdown', () => {
+            this.scene.pause('Map');
+            this.scene.launch('Market');
+        });
+    }
+
+    destroyMarketButton() {
+        if (this.marketButton) {
+            this.marketButton.destroy();
+            this.marketButton = null;
+        }
+    }
+
     // Handle player movement (your existing code)
     handlePlayerMovement(player, keys, speed = 160) {
         // Your existing movement code
+        console.log("player", this.player);
         player.setVelocity(0);
 
         let moveDirection = [0, 0];
@@ -272,6 +346,8 @@ export class Map extends Scene {
 
             const speedX = speed * normalizedDirection[0];
             const speedY = speed * normalizedDirection[1];
+
+            console.log("player", this.player);
 
             player.setVelocityX(speedX);
             player.setVelocityY(speedY);
@@ -536,5 +612,17 @@ export class Map extends Scene {
             this.deleteChunk(chunkString, this.chunkRender[chunkString]);
             this.renderChunk(data.chunkX, data.chunkY);
         });
+    }
+
+
+
+    onWalletChange(wallet) {
+        if (wallet) {
+            // Wallet is connected
+            this.createMarketButton();
+        } else {
+            this.destroyMarketButton();
+
+        }
     }
 }

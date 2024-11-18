@@ -2,7 +2,9 @@ import { Boot } from './scenes/Boot';
 import { MainMenu } from './scenes/MainMenu';
 import { Map } from './scenes/Map';
 import { Preloader } from './scenes/Preloader';
+import { Market } from './scenes/Market';
 import WebApp from '@twa-dev/sdk'
+
 
 import VirtualJoystickPlugin from 'phaser3-rex-plugins/plugins/virtualjoystick-plugin.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from './utils/consts';
@@ -29,7 +31,8 @@ const config = {
         Boot,
         Preloader,
         MainMenu,
-        Map
+        Map,
+        Market
     ],
     plugins: {
         global: [{

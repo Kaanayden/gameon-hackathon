@@ -3,6 +3,7 @@ import BlockModel from "../models/BlockModel.js";
 import { getDefaultOreType } from "../utils/generation/mapGenerator.js";
 
 
+
 export function getContacts(req, res) {
     res.status(200).send("getContacts");
 }
