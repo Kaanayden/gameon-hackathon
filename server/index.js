@@ -13,7 +13,7 @@ import landRoutes from "./routes/land.js";
 import telegramRoutes from "./routes/telegram.js";
 import { saveMapToDb } from './utils/generation/saveMapToDb.js';
 import { handleSocketConnection } from './controllers/socket.js';
-import { verifyTelegramWebAppData } from './utils/telegram.js';
+import { getUserData, verifyTelegramWebAppData } from './utils/telegram.js';
 
 
 const port = process.env.PORT || 8750;
@@ -26,8 +26,8 @@ app.use(bodyParser.json()); // Use body-parser to parse JSON request bodies
 
 connectDB();
 
-app.use("land", landRoutes);
-app.use("telegram", telegramRoutes);
+app.use("/land", landRoutes);
+app.use("/telegram", telegramRoutes);
 
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
@@ -43,7 +43,7 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   // Add a welcome message to socket connection
-  socket.emit('message', 'Welcome to the server!');
+  socket.emit('message', 'Welcome to the socket!');
 
   console.log('A user connected');  // Add logging here
   const verifyResult = verifyTelegramWebAppData(socket.handshake.auth.telegramInitData);
@@ -53,5 +53,6 @@ io.on('connection', (socket) => {
     return;
   }
   socket.emit('message', 'Successfully verified Telegram Web App data');
+  const userData = getUserData(socket.handshake.auth.telegramInitData);
   handleSocketConnection(socket, userData);
 });

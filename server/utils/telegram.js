@@ -31,27 +31,23 @@ export const verifyTelegramWebAppData = (telegramInitData) => {
 
   };
 
-  export function getUserData() {
-    const params = new URLSearchParams(Telegram.WebApp.initData);
+  export function getUserData(telegramInitData) {
+    const params = new URLSearchParams(telegramInitData);
 
 const userData = Object.fromEntries(params);
 userData.user = JSON.parse(userData.user);
     return userData.user;
 }
 
-export function getSessionData() {
-    return Telegram.WebApp.initData;
+export function getUserId(telegramInitData) {
+    return getUserData(telegramInitData).id;
 }
 
-export function getUserId() {
-    return getUserData().id;
+export function getUsername(telegramInitData) {
+    return getUserData(telegramInitData).username;
 }
 
-export function getUsername() {
-    return getUserData().username;
-}
-
-export function getUserFullName() {
-    const userData = getUserData();
+export function getUserFullName(telegramInitData) {
+    const userData = getUserData(telegramInitData);
     return userData.first_name + ' ' + userData.last_name;
 }

@@ -29,7 +29,7 @@ export async function getChunks(req, res) {
     // get chunk coordinates from query as array of arrays
     const chunkCoordinates = req.query.chunks;
     try {
-        console.log(chunkCoordinates);
+        //console.log(chunkCoordinates);
     let chunks = JSON.parse(chunkCoordinates);
 
     chunks = chunks.map(chunk => {
@@ -38,7 +38,7 @@ export async function getChunks(req, res) {
 
     const chunkPromises = chunks.map(async chunk => {
         const chunkData = getDefaultMapChunk(chunk.chunkX, chunk.chunkY);
-        console.log("chunkData", chunks, chunkData);
+        //console.log("chunkData", chunks, chunkData);
     
         // Get blocks from the database in specified range and modify chunk
         const blocks = await BlockModel.find({ 
@@ -53,7 +53,7 @@ export async function getChunks(req, res) {
             chunkData[localX][localY] = block.type;
         });
 
-        console.log("not default blocks", blocks);
+        //console.log("not default blocks", blocks);
     
         return chunkData;
     });

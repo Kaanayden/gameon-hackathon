@@ -1,5 +1,7 @@
 import { Scene } from 'phaser';
 import { Input } from 'phaser';
+import io from 'socket.io-client';
+import { RemotePlayer } from '../components/RemotePlayer';
 import {
     BLOCK_SIZE,
     CHUNK_SIZE,
@@ -17,6 +19,8 @@ import {
 } from '../utils/map';
 import { getBlockName, getBlockTypeByName } from '../utils/getBlockType';
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
+import { getSocket } from '../utils/socket';
+import { getUserId } from '../utils/telegram';
 
 export class Map extends Scene {
     constructor() {
@@ -32,6 +36,7 @@ export class Map extends Scene {
         this.player = null;
         this.joyStick = null;
         this.minimap = null;
+        this.remotePlayers = {};
     }
 
     // Load assets (if any)
@@ -96,6 +101,14 @@ export class Map extends Scene {
                 this.joyStick.visible = !visible;
                 this.joyStick.enable = !visible;
             }
+        });
+
+        this.setupSocket();
+
+        this.socket.emit('playerJoin', {
+            id: getUserId(),
+            x: this.player.x,
+            y: this.player.y,
         });
 
     }
@@ -213,6 +226,16 @@ export class Map extends Scene {
         } else {
             player.anims.stop();
             player.setFrame(0);
+        }
+
+        // Emit player's position to the server
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('playerMove', {
+                id: getUserId(),
+                x: player.x,
+                y: player.y,
+                anim: moveDirectionMagnitude > 0 ? player.anims.currentAnim.key : 'idle',
+            });
         }
     }
 
@@ -388,5 +411,32 @@ export class Map extends Scene {
 
     debug() {
         this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
+    }
+
+    setupSocket() {
+        this.socket = getSocket();
+
+        // Handle new players joining
+        this.socket.on('playerJoin', (data) => {
+            if (data.id !== getUserId() && !this.remotePlayers[data.id]) {
+                const remotePlayer = new RemotePlayer(this, data.id, data.x, data.y);
+                this.remotePlayers[data.id] = remotePlayer;
+            }
+        });
+
+        // Handle remote player movement
+        this.socket.on('playerMove', (data) => {
+            if (data.id !== getUserId() && this.remotePlayers[data.id]) {
+                this.remotePlayers[data.id].update(data);
+            }
+        });
+
+        // Handle players disconnecting
+        this.socket.on('playerLeft', (id) => {
+            if (this.remotePlayers[id]) {
+                this.remotePlayers[id].destroy();
+                delete this.remotePlayers[id];
+            }
+        });
     }
 }

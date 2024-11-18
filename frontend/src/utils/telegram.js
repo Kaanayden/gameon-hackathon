@@ -1,4 +1,6 @@
+import { getSocket } from "./socket";
 
+let userData;
 
 export const verifyTelegramWebAppData = async (telegramInitData) => {
     console.log("test data: ", telegramInitData);    
@@ -16,11 +18,16 @@ export const verifyTelegramWebAppData = async (telegramInitData) => {
   };
 
 export function getUserData() {
+
+if(userData) {
+        return userData.user;
+} else {
     const params = new URLSearchParams(Telegram.WebApp.initData);
 
-const userData = Object.fromEntries(params);
+userData = Object.fromEntries(params);
 userData.user = JSON.parse(userData.user);
     return userData.user;
+}
 }
 
 export function getSessionData() {
@@ -29,6 +36,7 @@ export function getSessionData() {
 
 export function getUserId() {
     return getUserData().id;
+    //return getSocket().id;
 }
 
 export function getUsername() {
