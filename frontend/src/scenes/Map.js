@@ -162,7 +162,7 @@ export class Map extends Scene {
             this.buildingMode.previewSprite = this.add.sprite(worldX, worldY, blockType.name)
                 .setAlpha(0.5)
                 .setOrigin(0.5, 0.5)
-                .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE);
+                .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE);
             this.buildingMode.previewRotation = 0;
 
             this.buildingMode.createRotateAndDoneButtons();
@@ -409,12 +409,25 @@ export class Map extends Scene {
                 const blockType = getBlockTypeByName(spriteKey);
 
                 const gameCoordinates = getGameCoordinates(worldX, worldY);
+
+                if(blockType.isTransparent) {
+                    const tile = this.add
+                    .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, getBlockType(getDefaultOreType(worldX, worldY)).name)
+                    .setOrigin(0.5, 0.5)
+                    .setDisplaySize(BLOCK_SIZE , BLOCK_SIZE)
+
+                    chunkGroup.add(tile);
+                }
+
+
                 const tile = this.add
                     .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, spriteKey)
                     .setOrigin(0.5, 0.5)
-                    .setDisplaySize(BLOCK_SIZE, BLOCK_SIZE)
+                    .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE)
                     // rotate the sprite if needed
                     .setAngle(90 * currBlock.direction)
+
+                
 
                 if (!blockType.isMovable) {
                     // Add physics body to immovable blocks

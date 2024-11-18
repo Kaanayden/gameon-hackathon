@@ -8,6 +8,7 @@ export const buildableBlocks = {
     '9': {name : 'counterClockwiseConveyor', path: 'buildableBlocks/curves.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: [0], outputDirections: [1], isStorage: false, isSpriteSheet: true, isConveyor: true, frames:[1], frameSize: 32},
     '10': {name: 'assembler', path: 'buildableBlocks/assembler.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: [0, 1, 3], outputDirections: [2], isStorage: true, isSpriteSheet: true, frames: [13], frameSize: 56},
     '11': {name: 'storage', path: 'buildableBlocks/storage.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: [0], outputDirections: null, isStorage: true, isSpriteSheet: false},
+    '12': {name: 'miner', path: 'buildableBlocks/furnace.png', isMovable: true, isOre: false, isPlaceable: false, isNatural: false, isBuildable: true, inputDirections: null, outputDirections: [1, 3], isStorage: false, isSpriteSheet: true, frames: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24], frameSize: 64, displaySize: 112, isTransparent: true},
 }   
 
 export const blockTypes = {

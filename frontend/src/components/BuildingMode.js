@@ -57,7 +57,7 @@ export class BuildingMode {
 
         this.bottomBarContainer.add(background);
 
-        const blockSize = 64;
+        const blockSize = BLOCK_SIZE;
         const padding = 10;
         const totalBlocks = Object.values(buildableBlocks).length;
         const totalWidth = totalBlocks * (blockSize + padding) - padding;
@@ -101,10 +101,14 @@ export class BuildingMode {
         this.selectedBorder = border;
         this.selectedBorder.setStrokeStyle(2, 0x00ff00);
 
+        const blockType = getBlockTypeByName(blockName);
+
         // If there's an existing preview, update it
         if (this.previewSprite) {
             this.previewSprite.setTexture(blockName);
             this.previewSprite.setRotation(0);
+            this.previewSprite.setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE);
+          
             this.previewRotation = 0;
         }
     }
@@ -125,7 +129,7 @@ export class BuildingMode {
         const offsetY = -50;
 
         if (!this.rotateButton) {
-            this.rotateButton = this.scene.add.image(50, SCREEN_HEIGHT - 45, 'rotate-icon')
+            this.rotateButton = this.scene.add.image(40, SCREEN_HEIGHT - 45, 'rotate-icon')
                 .setInteractive()
                 .setOrigin(0.5)
                 .on('pointerdown', (pointer, localX, localY, event) => {
@@ -136,7 +140,7 @@ export class BuildingMode {
                 .setDepth(4001)
                 .setScrollFactor(0);
 
-            this.doneButton = this.scene.add.image(130, SCREEN_HEIGHT - 45, 'done-icon')
+            this.doneButton = this.scene.add.image(105, SCREEN_HEIGHT - 45, 'done-icon')
                 .setInteractive()
                 .setOrigin(0.5)
                 .on('pointerdown', (pointer, localX, localY, event) => {
@@ -147,8 +151,8 @@ export class BuildingMode {
                 .setDepth(4001)
                 .setScrollFactor(0);
                 // make the buttons smaller according to their heigts and screen size without changing the aspect ratio
-                this.rotateButton.setScale(80 / this.rotateButton.height);
-                this.doneButton.setScale(80 / this.doneButton.height);
+                this.rotateButton.setScale(60 / this.rotateButton.height);
+                this.doneButton.setScale(60 / this.doneButton.height);
         }
     }
 
