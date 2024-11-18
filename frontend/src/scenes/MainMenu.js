@@ -8,11 +8,15 @@ export class MainMenu extends Scene {
     }
 
     create() {
-        this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
+        const background = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
+        // preserve aspect ratio of the background image
+        const scale = SCREEN_HEIGHT / background.height;
+        background.setScale(scale).setScrollFactor(0);
 
-        this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100, 'logo');
+        // Set position and size of the logo
+        this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250, 'logo').setScale(0.5);
 
-        this.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 150, 'Main Menu', {
+        this.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 200, 'Start The Game', {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
@@ -31,7 +35,7 @@ export class MainMenu extends Scene {
 
         console.log(Telegram.WebApp.initData);
         // Print welcome message to the main menu
-        this.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, `Welcome ${getUserId() ? getUserFullName() : 'User'}!`, {
+        this.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 100, `Welcome ${getUserId() ? getUserFullName() : 'User'}!`, {
             fontFamily: 'Arial', fontSize: 36, color: '#ffffff',
             stroke: '#000000', strokeThickness: 4,
             align: 'center'

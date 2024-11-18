@@ -2,6 +2,7 @@ import { Scene } from 'phaser';
 import { blockTypes } from '../utils/getBlockType';
 import { verifyTelegramWebAppData } from '../utils/telegram';
 import { connectSocket, handleSocket } from '../utils/socket';
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../utils/consts';
 
 export class Preloader extends Scene
 {
@@ -13,7 +14,8 @@ export class Preloader extends Scene
     init ()
     {
         //  We loaded this image in our Boot Scene, so we can display it here
-        this.add.image(360, 540, 'background');
+        const background = this.add.image(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 'background');
+        background.setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
 
         //  A simple progress bar. This is the outline of the bar.
         this.add.rectangle(360, 540, 468, 32).setStrokeStyle(1, 0xffffff);

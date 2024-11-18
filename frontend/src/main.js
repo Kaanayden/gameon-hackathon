@@ -1,6 +1,5 @@
 import { Boot } from './scenes/Boot';
 import { Game } from './scenes/Game';
-import { GameOver } from './scenes/GameOver';
 import { MainMenu } from './scenes/MainMenu';
 import { Map } from './scenes/Map';
 import { Preloader } from './scenes/Preloader';
@@ -32,7 +31,6 @@ const config = {
         Preloader,
         MainMenu,
         Game,
-        GameOver,
         Map
     ],
     plugins: {
