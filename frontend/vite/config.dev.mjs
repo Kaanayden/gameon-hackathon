@@ -15,7 +15,7 @@ export default defineConfig({
             }
         },
     },
-    plugins: [basicSsl(), nodePolyfills({
+    plugins: [ nodePolyfills({
         // Configuration options (if any)
         // For example, to include specific polyfills:
         // include: ["nodeGlobals", "nodeModules"],
