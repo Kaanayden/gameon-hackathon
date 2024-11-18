@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BLOCK_SIZE, MAP_SIZE, RAND_SEED } from '../utils/consts';
+import { BLOCK_SIZE, MAP_SIZE, RAND_SEED, SCREEN_HEIGHT, SCREEN_WIDTH } from '../utils/consts';
 import { getDefaultOreType } from '../utils/map';
 import { getBlockType } from '../utils/getBlockType';
 
@@ -13,21 +13,23 @@ export class BuildingMode {
         // Minimap properties
         this.isBuilding = false;
     
-        this.createMinimap();
-        this.setupMinimapToggle();
-        this.createToggleButton();
+        this.createBuildToggleButton();
       }
 
-      createToggleButton() {
-        // Create a button for toggling the minimap on mobile
+      createBuildToggleButton() {
         const toggleButton = this.scene.add
-          .text(10, 10, 'Toggle Minimap', { fontSize: '16px', fill: '#ffffff' })
+        // Create a button to toggle building mode on right bottom corner with pencil-edit icon
+        .image(SCREEN_WIDTH - 70, SCREEN_HEIGHT - 70, 'pencil-icon')
           .setInteractive()
           .on('pointerdown', () => {
             this.minimapVisible = !this.minimapVisible;
             this.minimapContainer.setVisible(this.minimapVisible);
             this.scene.events.emit('minimapVisibilityChanged', this.minimapVisible);
           });
+
+        // Set the button position to the bottom right corner
+        // set size
+        toggleButton.setScale(0.2);
     
         // Ensure the button is always on top
         toggleButton.setScrollFactor(0).setDepth(1003);

@@ -1,6 +1,5 @@
 import { Scene } from 'phaser';
 import { Input } from 'phaser';
-import io from 'socket.io-client';
 import { RemotePlayer } from '../components/RemotePlayer';
 import {
     BLOCK_SIZE,
@@ -21,6 +20,7 @@ import { blockTypes, getBlockName, getBlockTypeByName } from '../utils/getBlockT
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
+import { BuildingMode } from '../components/BuildingMode';
 
 export class Map extends Scene {
     constructor() {
@@ -89,6 +89,7 @@ export class Map extends Scene {
 
         // Create the minimap
         this.minimap = new Minimap(this, this.player);
+        this.buildingMode = new BuildingMode(this, this.player);
 
 
         this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
@@ -111,6 +112,8 @@ export class Map extends Scene {
             x: this.player.x,
             y: this.player.y,
         });
+
+
 
     }
 
