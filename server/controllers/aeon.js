@@ -102,20 +102,6 @@ export async function payWithAeon(req, res) {
     const isVerified = verifySignature(signContent, process.env.AEON_SECRET_KEY, signature);
     console.log('Verification successful:', isVerified);
 
-    const testData= {
-        appId: "TEST000001",
-        callbackURL: "https://90fc-111-10-154.ngrok-free.app/v1/xxxxx",
-        expiredTime: "60",
-        merchantOrderNo: "17236123450000",
-        orderAmount: "100",
-        orderModel: "ORDER",
-        payCurrency: "USD",
-        paymentTokens: "ETH",
-        redirectURL: "https://50xxxxx832.vicp.fun/platform/xxxxx",
-        sign: "07572BA8F945685E6BB57FC21FDE74E7217A015E00FD56176F3A500465817B33FAC086DA7887AC266BA8518960F0FE208DE1A8E105978B185A8D136DD0F6",
-        userId: "xxxxxxxe@aeontech.io"
-    }
-
 
     try {
     const response = await axios.post(AEON_PAYMENT_URL, {

@@ -101,15 +101,11 @@ export class BuildingMode {
         this.selectedBorder = border;
         this.selectedBorder.setStrokeStyle(2, 0x00ff00);
 
-        const blockType = getBlockTypeByName(blockName);
 
-        // If there's an existing preview, update it
+        // If there's an existing preview, remove it
         if (this.previewSprite) {
-            this.previewSprite.setTexture(blockName);
-            this.previewSprite.setRotation(0);
-            this.previewSprite.setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE);
-          
-            this.previewRotation = 0;
+            this.previewSprite.destroy();
+            this.previewSprite = null;
         }
     }
 

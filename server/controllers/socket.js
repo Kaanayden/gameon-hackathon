@@ -1,5 +1,7 @@
+import { getBlockType } from '../../frontend/src/utils/getBlockType.js';
 import { io } from '../index.js';
 import BlockModel from '../models/BlockModel.js';
+import MaterialModel from '../models/MaterialModel.js';
 const currentPlayers = {};
 
 export const handleSocketConnection = (socket, userData) => {
@@ -18,7 +20,7 @@ export const handleSocketConnection = (socket, userData) => {
 
 
   // id, x, y
-  socket.on('playerJoin', (data) => {
+  socket.on('playerJoin', async (data) => {
     console.log('userData:', userData);
     console.log('Player joined:', data);
     currentPlayers[userData.id] = data;
@@ -30,6 +32,16 @@ export const handleSocketConnection = (socket, userData) => {
         socket.emit('playerJoin', currentPlayers[id]);
       }
     }
+
+    const materials = await MaterialModel.find();
+    const compressedMaterials = materials.map(material => {
+        return {
+            x: material.x,
+            y: material.y,
+            type: material.type
+        };
+    });
+    socket.emit('materials', compressedMaterials);
 
   });
   
@@ -63,7 +75,7 @@ export const handleSocketConnection = (socket, userData) => {
             type: data.blockType,
             direction: data.direction
           });
-          
+
           BlockModel.updateOne(
             { x: newBlock.x, y: newBlock.y }, // Filter
             { $set: newBlock }, // Update
@@ -74,6 +86,20 @@ export const handleSocketConnection = (socket, userData) => {
             console.error('Failed to place block:', err);
         });
 
+        const blockType = getBlockType(data.blockType)
+        if(!blockType.isConveyor) {
+          // Also delete the material if it is not a conveyor and if there is any
+          MaterialModel.deleteOne({ x: data.x, y: data.y }).then(() => {
+              console.log('Material deleted successfully');
+          }
+
+          ).catch((err) => {
+              console.error('Failed to delete material:', err);
+          });
+        }
+
       });
+
+
 
 };

@@ -17,6 +17,11 @@ const BlockSchema = new mongoose.Schema({
         type: Number,
         required: false,
     },
+    storage: {
+        type: Map,
+        of: Number,
+        required: false,
+      },
 }, { 
     _id: false 
 });

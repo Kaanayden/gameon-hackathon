@@ -1,4 +1,4 @@
-import { BLOCK_SIZE, CHUNK_SIZE } from "./consts";
+import { BLOCK_SIZE, CHUNK_SIZE } from "./consts.js";
 
 // gets global coordinates to chunk
 export function generateChunkStringFromPoint(x, y) {

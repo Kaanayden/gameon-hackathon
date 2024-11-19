@@ -376,7 +376,7 @@ export class Minimap {
     const toggleButton = this.scene.add
       .image(60, 60, 'map-icon')
       .setOrigin(0.5, 0.5)
-      .setScale(0.2)
+      .setScale(0.5)
       .setInteractive()
       .on('pointerdown', () => {
         this.minimapVisible = !this.minimapVisible;

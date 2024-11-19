@@ -84,6 +84,12 @@ export class Preloader extends Scene {
         this.load.image('done-icon', 'done-icon.png');
         this.load.image('map-icon', 'map-icon.png');
 
+        this.load.image('bauxite', 'ores/bauxite.png');
+        this.load.image('coal', 'ores/coal.png');
+        this.load.image('copper', 'ores/copper.png');
+        this.load.image('iron', 'ores/iron.png');
+        this.load.image('quartz', 'ores/quartz.png');
+
         //this.load.spritesheet('water', 'naturalBlocks/ocean.png', { frameWidth: 16, frameHeight: 16 });
 
     }

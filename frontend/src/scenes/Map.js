@@ -8,6 +8,7 @@ import {
     MAX_WALK_FRAMES_PER_SECOND,
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
+    MATERIAL_SIZE,
 } from '../utils/consts';
 import {
     generateChunkString,
@@ -20,7 +21,7 @@ import {
     getDefaultMapChunk,
     getDefaultOreType,
 } from '../utils/map';
-import { blockTypes, getBlockByCoordinates, getBlockName, getBlockType, getBlockTypeByName } from '../utils/getBlockType';
+import { blockTypes, getBlockByCoordinates, getBlockByXY, getBlockName, getBlockType, getBlockTypeByName } from '../utils/getBlockType';
 import { Minimap } from '../components/Minimap'; // Import the Minimap class
 import { getSocket } from '../utils/socket';
 import { getUserId } from '../utils/telegram';
@@ -45,6 +46,8 @@ export class Map extends Scene {
         this.remotePlayers = {};
         this.connectButton = null;
         this.marketButton = null;
+        this.materials = {};
+        this.materialsGroup = null;
     }
 
     // Load assets (if any)
@@ -182,13 +185,16 @@ export class Map extends Scene {
 
         const previousBlock = getBlockByCoordinates(worldX, worldY, this.chunkData);
         const previousBlockType = getBlockType(previousBlock.blockType);
+        const mapCoords = getMapCoordinates(worldX, worldY);
+        const defaultOreType = getDefaultOreType(mapCoords.x, mapCoords.y)
+        const defaultOre = getBlockType(defaultOreType);
 
         if(!previousBlockType.isNatural) {
-            const mapCoords = getMapCoordinates(worldX, worldY);
-            this.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: getDefaultOreType(mapCoords.x, mapCoords.y), direction: 0});
+            this.socket.emit('placeBlock', { x: mapCoords.x, y: mapCoords.y, blockType: defaultOreType, direction: 0});
         }
 
         if(!this.buildingMode.selectedBlockType || !previousBlockType.isMovable) return;
+        if(blockType.name === 'miner' && !defaultOre.isOre ) return;
 
 
         if (this.buildingMode.previewSprite) {
@@ -199,8 +205,9 @@ export class Map extends Scene {
             this.buildingMode.previewSprite = this.add.sprite(worldX, worldY, blockType.name)
                 .setAlpha(0.5)
                 .setOrigin(0.5, 0.5)
-                .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE);
-            this.buildingMode.previewRotation = 0;
+                .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE)
+                .setRotation(Phaser.Math.DegToRad(this.buildingMode.previewRotation * 90))
+                .setDepth(1000);
 
             this.buildingMode.createRotateAndDoneButtons();
         }
@@ -260,7 +267,7 @@ export class Map extends Scene {
             .sprite(MAP_SIZE / 2, MAP_SIZE / 2, 'guy', 0)
             .setCollideWorldBounds(true)
             .setScale(3)
-            .setDepth(2);
+            .setDepth(10);
 
         this.player.body.setSize(this.player.width * 0.6, this.player.height * 0.5);
         this.player.body.setOffset(this.player.width * 0.2, this.player.height * 0.5);
@@ -313,7 +320,6 @@ export class Map extends Scene {
     // Handle player movement (your existing code)
     handlePlayerMovement(player, keys, speed = 160) {
         // Your existing movement code
-        console.log("player", this.player);
         player.setVelocity(0);
 
         let moveDirection = [0, 0];
@@ -348,7 +354,6 @@ export class Map extends Scene {
             const speedX = speed * normalizedDirection[0];
             const speedY = speed * normalizedDirection[1];
 
-            console.log("player", this.player);
 
             player.setVelocityX(speedX);
             player.setVelocityY(speedY);
@@ -450,6 +455,60 @@ export class Map extends Scene {
             }
         });
     }
+    
+renderMaterials() {
+
+    if(this.materialsGroup) {
+        this.materialsGroup.clear(true, true);
+    }
+    else this.materialsGroup = this.add.group({
+        classType: Phaser.GameObjects.Sprite,
+    });
+
+    Object.entries(this.materials).forEach(([key, value]) => {
+        
+        const blockType = getBlockByXY(value.x, value.y, this.chunkData)
+
+        if(!blockType) return;
+        const gameCoordinates = getGameCoordinates(value.x, value.y);
+        let target;
+
+        switch (blockType.direction) {
+            case 0:
+                target = {y: gameCoordinates.y + BLOCK_SIZE / 2 - BLOCK_SIZE};
+                break;
+            case 1:
+                target = {x:gameCoordinates.x + BLOCK_SIZE / 2  + BLOCK_SIZE};
+                break;
+            case 2:
+                target = {y: gameCoordinates.y + BLOCK_SIZE / 2+ BLOCK_SIZE};
+                break;
+            case 3:
+                target = {x: gameCoordinates.x + BLOCK_SIZE / 2  - BLOCK_SIZE};
+                break;
+            default:
+                target = {y: gameCoordinates.y + BLOCK_SIZE / 2 - BLOCK_SIZE};
+        }
+
+
+        const material = this.add
+            .sprite(gameCoordinates.x + BLOCK_SIZE / 2, gameCoordinates.y + BLOCK_SIZE / 2, value.type)
+            .setOrigin(0.4, 0.4)
+            .setDisplaySize(MATERIAL_SIZE, MATERIAL_SIZE)
+            .setDepth(4);
+        this.tweens.add({
+            targets: material,
+            ...target,
+            duration: 5000,
+            ease: 'Linear',
+            yoyo: true,
+            repeat: -1,
+        });
+        this.materialsGroup.add(material);
+    }
+    );
+    
+}
 
     renderChunk(chunkX, chunkY) {
 
@@ -503,8 +562,12 @@ export class Map extends Scene {
                     .setDisplaySize(blockType.displaySize ? blockType.displaySize : BLOCK_SIZE, blockType.displaySize ? blockType.displaySize : BLOCK_SIZE)
                     // rotate the sprite if needed
                     .setAngle(90 * currBlock.direction)
+                    .setDepth(5);
 
-                
+                if(blockType.name === 'conveyor') { 
+                    tile.setDepth(3);
+                }
+
 
                 if (!blockType.isMovable) {
                     // Add physics body to immovable blocks
@@ -611,12 +674,20 @@ export class Map extends Scene {
 
         // Handle player building
         this.socket.on('blockPlaced', (data) => {
-            console.log("place block:", data)
+            //console.log("place block:", data)
             const chunkString = generateChunkStringFromPoint(data.x, data.y)
             this.chunkData[chunkString].data[data.x % CHUNK_SIZE][data.y % CHUNK_SIZE] = { blockType: data.blockType, direction: data.direction };
             
             this.deleteChunk(chunkString, this.chunkRender[chunkString]);
             this.renderChunk(data.chunkX, data.chunkY);
+        });
+
+        this.socket.on('materials', (data) => {
+            this.materials = {};
+            data.forEach((material) => {
+                this.materials[`${material.x}-${material.y}`] = material;
+            });
+            this.renderMaterials();
         });
     }
 

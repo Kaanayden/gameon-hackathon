@@ -16,6 +16,7 @@ import { handleSocketConnection } from './controllers/socket.js';
 import { getUserData, verifyTelegramWebAppData } from './utils/telegram.js';
 import landDetailRoutes from './routes/landDetail.js';
 import aeonRoutes from './routes/aeon.js';
+import { startServiceWorker } from './serviceWorker.js';
 
 
 const port = process.env.PORT || 8750;
@@ -62,3 +63,5 @@ io.on('connection', (socket) => {
   const userData = getUserData(socket.handshake.auth.telegramInitData);
   handleSocketConnection(socket, userData);
 });
+
+startServiceWorker();
