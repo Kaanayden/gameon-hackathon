@@ -3,6 +3,8 @@
 <img src="https://github.com/user-attachments/assets/1fcc4085-e796-44b0-b6e6-3dd897b8e5bb" alt="logo" width="200"/>
 
 ## Overview
+[Live Demo](https://machinaflow.kaanaydeniz.com/)
+
 [Telegram Web App](https://t.me/MachinaFlowBot)
 
 [Demo Video - Youtube](https://youtu.be/bh0W85PScw0)
